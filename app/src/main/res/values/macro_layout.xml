@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="is_tablet_layout">false</bool>
+    <!-- recycler view-->
+    <dimen name="list_side_margin">4dp</dimen>
+    <!-- card view -->
+    <!-- details-->
+</resources>
