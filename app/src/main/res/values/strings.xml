@@ -1,4 +1,30 @@
 <resources>
     <string name="app_name">For Reddit Capstone</string>
     <string name="default_icon_description">subreddit icon</string>
+    <string name="title_activity_login">Sign in</string>
+    <!-- Strings related to login -->
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_username">This username is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="new_user_warning">In order to use this app, You must login to your reddit account.</string>
+    <string name="sign_in_button">Sign In with Reddit</string>
+    <string name="no_connection_error">In order to use this app you must have an internet connection.</string>
+    <string name="hide_button_description">Hide</string>
+    <string name="save_button_description">Save</string>
+    <string name="hide_button_name">hide</string>
+    <string name="save_button_name">save</string>
+    <!-- settings menu -->
+    <string name="settings_homepage">Homepage</string>
+    <string name="settings_subreddits">Subreddit List</string>
+    <string name="settings_favorites">Favorites</string>
+    <string name="settings_logout">Logout</string>
+    <string name="settings_search">Search</string>
 </resources>
