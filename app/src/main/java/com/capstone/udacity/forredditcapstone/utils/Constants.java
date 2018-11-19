@@ -3,7 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import java.util.UUID;
 
 public class Constants {
-    public static final String CLIENT_ID = "Your access key";
+    public static final String CLIENT_ID = "Client Key Here";
     public static final String USER_AGENT = "User-Agent: android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)";
     public static final String OAUTH_URL = "https://www.reddit.com/api/v1/authorize.compact";
     public static final String ACCESS_TOKEN_URL = "https://www.reddit.com/api/v1/access_token";

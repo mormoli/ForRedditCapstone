@@ -2,6 +2,7 @@ package com.capstone.udacity.forredditcapstone.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -18,6 +19,8 @@ public class PostData implements Parcelable {
 
     public PostData(){}
 
+    @SerializedName("subreddit")
+    private String subredditName;
     @SerializedName("id")
     private String id;
     @SerializedName("subreddit_name_prefixed")
@@ -38,6 +41,16 @@ public class PostData implements Parcelable {
     private int numComments;
     @SerializedName("over_18")
     private boolean over18;
+    @SerializedName("permalink")
+    private String permalink;
+
+    public String getSubredditName() {
+        return subredditName;
+    }
+
+    public void setSubredditName(String subredditName) {
+        this.subredditName = subredditName;
+    }
 
     public String getId() {
         return id;
@@ -119,7 +132,16 @@ public class PostData implements Parcelable {
         this.over18 = over18;
     }
 
+    public String getPermalink() {
+        return permalink;
+    }
+
+    public void setPermalink(String permalink) {
+        this.permalink = permalink;
+    }
+
     private PostData(Parcel in){
+        this.subredditName = in.readString();
         this.id = in.readString();
         this.subredditNamePrefixed = in.readString();
         this.author = in.readString();
@@ -130,6 +152,7 @@ public class PostData implements Parcelable {
         this.ups = in.readInt();
         this.numComments = in.readInt();
         this.over18 = in.readByte() != 0;
+        this.permalink = in.readString();
     }
 
     @Override
@@ -139,6 +162,7 @@ public class PostData implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.subredditName);
         dest.writeString(this.id);
         dest.writeString(this.subredditNamePrefixed);
         dest.writeString(this.author);
@@ -149,8 +173,10 @@ public class PostData implements Parcelable {
         dest.writeInt(this.ups);
         dest.writeInt(this.numComments);
         dest.writeByte((byte) (this.over18 ? 1 : 0));
+        dest.writeString(this.permalink);
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "PostData{" +

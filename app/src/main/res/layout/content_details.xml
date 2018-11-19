@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/md_keylines"
-    android:layout_marginBottom="@dimen/md_keylines"
-    android:layout_marginLeft="@dimen/md_keylines"
-    android:layout_marginRight="@dimen/md_keylines"
-    android:foreground="?attr/selectableItemBackground"
+    tools:context=".DetailsActivity"
+    tools:showIn="@layout/activity_details"
     android:minHeight="@dimen/card_image_height">
-    <!-- Use compound drawables -->
+
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/card_image_height">
+        android:layout_height="match_parent">
         <!-- header -->
         <TextView
             android:id="@+id/card_header_text"
             style="@style/TextAppearance.MaterialComponents.Caption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/md_keylines"
-            android:layout_marginLeft="@dimen/md_keylines"
-            android:layout_marginStart="@dimen/md_keylines"
+            android:layout_marginTop="@dimen/tile_padding"
+            android:layout_marginLeft="@dimen/tile_padding"
+            android:layout_marginStart="@dimen/tile_padding"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="r/subreddit . posted by u/user 13 hours ago" />
-        <!-- reduce margins to 8-->
-        <!-- center content-->
+
         <TextView
             style="@style/TextAppearance.MaterialComponents.Headline6"
             android:id="@+id/post_title_text"
@@ -38,19 +34,19 @@
             android:layout_toStartOf="@+id/thumbnail_image_view"
             android:layout_toLeftOf="@+id/thumbnail_image_view"
             android:maxLines="5"
-            android:layout_marginLeft="@dimen/md_keylines"
-            android:layout_marginTop="@dimen/md_keylines"
-            android:layout_marginBottom="@dimen/md_keylines"
-            android:layout_marginRight="@dimen/md_keylines"
+            android:layout_marginLeft="@dimen/tile_padding"
+            android:layout_marginTop="@dimen/tile_padding"
+            android:layout_marginBottom="@dimen/tile_padding"
+            android:layout_marginRight="@dimen/tile_padding"
             tools:text="TITLE OF SUBS" />
 
         <ImageView
             android:id="@+id/thumbnail_image_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/md_keylines"
-            android:layout_marginEnd="@dimen/md_keylines"
-            android:layout_marginRight="@dimen/md_keylines"
+            android:layout_marginTop="@dimen/tile_padding"
+            android:layout_marginEnd="@dimen/tile_padding"
+            android:layout_marginRight="@dimen/tile_padding"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:adjustViewBounds="true"
@@ -83,8 +79,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginStart="@dimen/md_keylines"
-                android:layout_marginLeft="@dimen/md_keylines"
+                android:layout_marginStart="@dimen/tile_padding"
+                android:layout_marginLeft="@dimen/tile_padding"
                 android:layout_marginBottom="@dimen/tile_padding"
                 android:layout_marginRight="@dimen/tile_padding"
                 android:layout_marginEnd="@dimen/tile_padding"
@@ -124,8 +120,8 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
                 android:adjustViewBounds="true"
-                android:layout_marginEnd="@dimen/md_keylines"
-                android:layout_marginRight="@dimen/md_keylines"
+                android:layout_marginEnd="@dimen/tile_padding"
+                android:layout_marginRight="@dimen/tile_padding"
                 android:contentDescription="@string/save_button_description"
                 app:srcCompat="@drawable/ic_save_black_24dp"/>
 

@@ -78,11 +78,6 @@ public class LoginActivity extends AppCompatActivity{
                 if (state.equals(Constants.STATE)){
                     String code = uri.getQueryParameter("code");
                     getAccessToken(code);
-                    if(isUserLogged){
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.putExtra("access", "granted");
-                        startActivity(intent);
-                    }
                 }
             }
         }
@@ -129,6 +124,9 @@ public class LoginActivity extends AppCompatActivity{
                     isUserLogged = true;
                     Log.d(TAG, "Access token: " + accessToken);
                     Log.d(TAG, "Refresh token: " + refreshToken);
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.putExtra("access", "granted");
+                    startActivity(intent);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

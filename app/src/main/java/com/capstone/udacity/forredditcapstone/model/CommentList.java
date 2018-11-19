@@ -2,13 +2,11 @@ package com.capstone.udacity.forredditcapstone.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
-
-public class Child {
+public class CommentList {
     @SerializedName("kind")
     private String kind;
     @SerializedName("data")
-    private PostData data;
+    private CommentMainData data;
 
     public String getKind() {
         return kind;
@@ -18,11 +16,11 @@ public class Child {
         this.kind = kind;
     }
 
-    public PostData getData() {
+    public CommentMainData getData() {
         return data;
     }
 
-    public void setData(PostData data) {
+    public void setData(CommentMainData data) {
         this.data = data;
     }
 }
