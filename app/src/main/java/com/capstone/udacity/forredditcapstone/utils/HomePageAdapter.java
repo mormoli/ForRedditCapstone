@@ -1,5 +1,6 @@
 package com.capstone.udacity.forredditcapstone.utils;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.card.MaterialCardView;
 import android.support.v7.widget.RecyclerView;
@@ -55,6 +56,7 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         ImageButton saveButton;
         public HomePageHolder(View view){
             super(view);
+            //setIsRecyclable(false);
             ButterKnife.bind(this, view);
         }
     }
@@ -102,20 +104,45 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         //Header of the card
         String header = data.getSubredditNamePrefixed() + " . posted bu u/"+ data.getAuthor() +" "+ getTimeAgo(data.getCreatedUTC());
         holder.headerText.setText(header);
-        //post title
-        if(!TextUtils.isEmpty(data.getTitle())) holder.postTitle.setText(data.getTitle());
-        else holder.postTitle.setVisibility(View.GONE);
-        //image if exist
+
         if(!TextUtils.isEmpty(data.getThumbnail())){
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.postTitle.getLayoutParams();
             //holder.postImage.setLayoutParams(new RelativeLayout.LayoutParams(100,80));
+            if(holder.postImage.getVisibility() == View.GONE) holder.postImage.setVisibility(View.VISIBLE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                params.addRule(RelativeLayout.START_OF, R.id.thumbnail_image_view);
+            } else {
+                params.addRule(RelativeLayout.LEFT_OF, R.id.thumbnail_image_view);
+            }
+            holder.postTitle.setLayoutParams(params);
+            holder.materialCardView.invalidate();
+            holder.materialCardView.requestLayout();
             Picasso.get()
                     .load(data.getThumbnail())
-                    .resize(144, 108)
-                    .onlyScaleDown() //// the image will only be resized if it's bigger than 120x120 pixels.
+                    //.resize(400, 300)
+                    //.onlyScaleDown() //// the image will only be resized if it's bigger than 120x120 pixels.
                     .into(holder.postImage);
         } else {
-            holder.postImage.setVisibility(View.GONE);
+            if(holder.postImage.getVisibility() == View.VISIBLE){
+                //holder.postImage.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
+                holder.postImage.setVisibility(View.GONE);
+                //holder.postImage.invalidate();
+                //holder.postImage.requestLayout();
+            }
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.postTitle.getLayoutParams();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                params.removeRule(RelativeLayout.START_OF);
+            } else {
+                params.addRule(RelativeLayout.LEFT_OF, 0);
+            }
+            holder.postTitle.setLayoutParams(params);
+            holder.materialCardView.invalidate();
+            holder.materialCardView.requestLayout();
         }
+        //post title
+        if(!TextUtils.isEmpty(data.getTitle())){
+            holder.postTitle.setText(data.getTitle());
+        } else holder.postTitle.setVisibility(View.GONE);
         //set sub text if exist or visibility gone
         //if(!TextUtils.isEmpty(data.getSelftext())) holder.postSubtitle.setText(data.getSelftext());
         //else holder.postSubtitle.setVisibility(View.GONE);

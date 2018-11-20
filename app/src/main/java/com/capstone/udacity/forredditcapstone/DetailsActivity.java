@@ -11,10 +11,13 @@ import android.util.Log;
 import android.view.MenuItem;
 
 import com.capstone.udacity.forredditcapstone.model.CommentList;
+import com.capstone.udacity.forredditcapstone.model.CommentReader;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.TheRedditApi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -27,6 +30,7 @@ public class DetailsActivity extends AppCompatActivity {
     private static final String TAG = DetailsActivity.class.getSimpleName();
     private static final String BASE_OAUTH_URL = "https://oauth.reddit.com";
     private String userAccessToken;
+    private List<CommentList> commentList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,23 +57,30 @@ public class DetailsActivity extends AppCompatActivity {
                 .build();
 
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
-        String authorization = "Authorization: Bearer " + userAccessToken;
+        String authorization = "bearer " + userAccessToken;
         Map<String, String> map = new HashMap<>();
         map.put("limit", "25");
-        map.put("sort", "new");
 
-        Call<CommentList> call = theRedditApi.getPostComments(authorization, subredditName, postId, map);
+        Call<CommentReader> call = theRedditApi.getPostComments(authorization, subredditName, postId, map);
 
-        call.enqueue(new Callback<CommentList>() {
+        call.enqueue(new Callback<CommentReader>() {
             @Override
-            public void onResponse(@NonNull Call<CommentList> call, @NonNull Response<CommentList> response) {
+            public void onResponse(@NonNull Call<CommentReader> call, @NonNull Response<CommentReader> response) {
                 Log.d(TAG, " server response: " + response.toString());
                 assert response.body() != null;
-                Log.d(TAG, " author : " + response.body().getData().getChildren().get(0).getData().getAuthor());
+                if(commentList == null) commentList = new ArrayList<>();
+                if(response.code() == 200) {
+                    //Log.d(TAG, " author : " + response.body().get(1).getData().getChildren().get(1).getData().getAuthor());
+                    //https://futurestud.io/tutorials/gson-mapping-of-arrays-and-lists-of-objects
+                    Log.d(TAG, " Server Response Body: " + response.body().toString());
+                    //https://codereview.stackexchange.com/questions/203507/saving-reddit-posts-and-comments-from-json-into-arraylists
+                    //populateUI()
+                }
+
             }
 
             @Override
-            public void onFailure(@NonNull Call<CommentList> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<CommentReader> call, @NonNull Throwable t) {
                 Log.e(TAG, "Retrofit Error : " + t.getMessage());
             }
         });

@@ -1,10 +1,12 @@
 package com.capstone.udacity.forredditcapstone.utils;
 
 import com.capstone.udacity.forredditcapstone.model.CommentList;
+import com.capstone.udacity.forredditcapstone.model.CommentReader;
 import com.capstone.udacity.forredditcapstone.model.RefreshToken;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
 
+import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
@@ -37,7 +39,7 @@ public interface TheRedditApi {
     //@see 'https://www.reddit.com/r/redditdev/comments/197x36/using_oauth_to_send_valid_requests/'
     @POST("/api/v1/access_token")
     @Headers(Constants.USER_AGENT)
-    Call<RefreshToken> getAccessToken(@Header("Authrization") String auth, @Field("grant_type") String grantType,
+    Call<RefreshToken> getAccessToken(@Header("Authorization") String auth, @Field("grant_type") String grantType,
                                       @Field("refresh_token") String refreshToken);
     //POST /api/hide : Hide a link. This removes it from the user's default view of subreddit listings.
     //POST /api/save : Save a link or comment.
@@ -49,8 +51,8 @@ public interface TheRedditApi {
     //POST /api/subscribe : Subscribe to or unsubscribe from a subreddit.
     @GET("/r/{subredditName}/comments/{postId}.json")
     @Headers(Constants.USER_AGENT)
-    Call<CommentList> getPostComments(@Header("Authorization") String authorization,
-    @Path(value = "subredditName") String subredditName,
-    @Path(value = "postId") String postId,
-    @QueryMap Map<String , String > parameters);
+    Call<CommentReader> getPostComments(@Header("Authorization") String authorization,
+                                        @Path(value = "subredditName") String subredditName,
+                                        @Path(value = "postId") String postId,
+                                        @QueryMap Map<String , String > parameters);
 }

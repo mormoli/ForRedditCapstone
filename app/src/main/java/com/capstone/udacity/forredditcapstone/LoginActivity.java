@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
@@ -115,6 +118,7 @@ public class LoginActivity extends AppCompatActivity{
                     data = new JSONObject(json);
                     accessToken = data.optString("access_token");
                     refreshToken = data.optString("refresh_token");
+                    String token_type = data.optString("token_type");
                     //saving tokens in to shared preferences
                     sharedPreferences = getApplicationContext().getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -124,6 +128,7 @@ public class LoginActivity extends AppCompatActivity{
                     isUserLogged = true;
                     Log.d(TAG, "Access token: " + accessToken);
                     Log.d(TAG, "Refresh token: " + refreshToken);
+                    Log.d(TAG, "Token Type: " + token_type);
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.putExtra("access", "granted");
                     startActivity(intent);

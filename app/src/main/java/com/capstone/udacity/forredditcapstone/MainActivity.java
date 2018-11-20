@@ -10,6 +10,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -56,14 +57,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final String BASE_URL = "https://www.reddit.com";
-    private static final String BASE_OAUTH_URL = "https://oauth.reddit.com";
     private static final String TAG = MainActivity.class.getSimpleName();
+    private SharedPreferences sharedPreferences;
     @BindView(R.id.homepage_list_view)
     RecyclerView recyclerView;
     HomePageAdapter homePageAdapter;
     private List<Child> childList;
     private String userAccessToken, userRefreshToken;
+    private Parcelable recyclerViewState;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,11 +73,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        SharedPreferences sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
-        userAccessToken = sharedPreferences.getString("accessToken", null);
-        userRefreshToken = sharedPreferences.getString("refreshToken", null);
+        sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
+        //get tokens from shared preferences if value exist or not null
+        if(sharedPreferences.getString("accessToken", null) != null) {
+            userAccessToken = sharedPreferences.getString("accessToken", null);
+            userRefreshToken = sharedPreferences.getString("refreshToken", null);
+        }
 
-        if (!isNetworkConnected()){
+        if (!isNetworkConnected()){ //while schedule job check's for connectivity for older api using this method
             showMessageOnError();
         } else {
             if (getIntent() != null && getIntent().hasExtra("access")) {
@@ -90,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("user", "new user");
                 startActivity(intent);
             } else {
-                //getHomePage(sharedPreferences.getString("accessToken", ""));
-                String accessToken = userAccessToken;
-                Log.d(TAG, " Token: " + userAccessToken);
-                getUserInfo();
+                //retrieve data from user's home page
+                getHomePage(userAccessToken);
+                //get username and save to shared preferences for later use.
+                if(TextUtils.isEmpty(sharedPreferences.getString("username", null))) getUserInfo();
             }
         }
     }
@@ -167,12 +171,12 @@ public class MainActivity extends AppCompatActivity {
     //Postman app used to create returning values
     public void getHomePage(final String userAccessToken) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_OAUTH_URL)
+                .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
-        String authorization = "Authorization: Bearer " + userAccessToken;
+        String authorization = "bearer " + userAccessToken;
         //put over18 value in map --> must be off in order to app Safe For Work!!
         Map<String, String> map = new HashMap<>();
         map.put("limit", "25");
@@ -191,10 +195,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, " array title: " + childList.get(0).getData().getTitle());
                     Log.d(TAG, " data size: " + childList.size());
                     populateUI(childList);
-                }else { //try refresh token then call method again
-                    //If you request permanent access, then you will need to refresh the tokens after 1 hour.
-                    //getAccessToken();
+                } else { //probably error code is 401 --> try refresh the token then call method again
                     Log.d(TAG, " response code: " + response.code());
+                    getAccessToken();
                 }
             }
 
@@ -236,11 +239,11 @@ public class MainActivity extends AppCompatActivity {
     }
     private void getUserInfo(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_OAUTH_URL)
+                .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
-        String authorization = "Authorization: bearer " + userAccessToken;
+        String authorization = "bearer " + userAccessToken;
 
         Call<UserInfo> call = theRedditApi.getUserInfo(authorization);
         call.enqueue(new Callback<UserInfo>() {
@@ -249,6 +252,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, " server response: " + response.toString());
                 assert response.body() != null;
                 Log.d(TAG, " username: " + response.body().getUserName());
+                Log.d(TAG, " id: " + response.body().getUserId());
+                Log.d(TAG, " over18: " + response.body().isOver18());
             }
 
             @Override
@@ -258,8 +263,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     /*
-    * Method that refresh the given token
-    * If you request permanent access, then you will need to refresh the tokens after 1 hour.*/
+    * Method that refresh's the given token
+    * If you request permanent access, then you will need to refresh the tokens after 1 hour.
+    * */
     private void getAccessToken(){
         OkHttpClient client = new OkHttpClient();
         Log.d(TAG, "getAccessToken called.");
@@ -290,10 +296,9 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     data = new JSONObject(json);
+                    //get new access token
                     userAccessToken = data.optString("access_token");
-                    //userRefreshToken = data.optString("refresh_token");
-                    //saving tokens in to shared preferences
-                    SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
+                    //replace value in shared preferences
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("accessToken", userAccessToken);
                     //editor.putString("refreshToken", userRefreshToken);
@@ -309,8 +314,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-     * Method that checks all internet providers ( for api below 21 )
-     * JobScheduler class used to check connectivity for api >= 21
+     * Job scheduler used to check connectivity because its for api level >= 21 leaving this method on activity.
      * Android getAllNetworkInfo() is Deprecated.
      * @see "https://stackoverflow.com/questions/32242384/android-getallnetworkinfo-is-deprecated-what-is-the-alternative"
      * @return internet connection status.
@@ -351,20 +355,28 @@ public class MainActivity extends AppCompatActivity {
         //finish();
         Toast.makeText(this, R.string.no_connection_error, Toast.LENGTH_SHORT).show();
     }
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(recyclerViewState != null)
+            recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+    }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        //restoring tokens
-        userAccessToken = savedInstanceState.getString("accessToken");
-        userRefreshToken = savedInstanceState.getString("refreshToken");
+        //restoring scrolling position
+        recyclerViewState = savedInstanceState.getParcelable("scroll_state");
     }
-
+    @SuppressWarnings("ConstantConditions")
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //saving tokens
-        outState.putString("accessToken", userAccessToken);
-        outState.putString("refreshToken", userRefreshToken);
+        //saving scrolling position of recycler view
+        if(recyclerView != null && childList != null){
+            recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
+            outState.putParcelable("scroll_state", recyclerViewState);
+        }
     }
 }

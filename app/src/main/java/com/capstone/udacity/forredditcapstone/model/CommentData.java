@@ -5,6 +5,8 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class CommentData implements Parcelable {
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator(){
         public CommentData createFromParcel(Parcel in){
@@ -23,6 +25,8 @@ public class CommentData implements Parcelable {
     private String body;
     @SerializedName("created_utc")
     private int createdUTC;
+    @SerializedName("replies")
+    private List<Replies> replies;
 
     public CommentData(){}
 
@@ -58,6 +62,13 @@ public class CommentData implements Parcelable {
         this.createdUTC = createdUTC;
     }
 
+    public List<Replies> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<Replies> replies) {
+        this.replies = replies;
+    }
 
     @Override
     public int describeContents() {
