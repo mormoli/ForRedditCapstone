@@ -2,6 +2,7 @@
 <android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.MaterialComponents.CardView"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -31,6 +32,8 @@
             android:id="@+id/post_title_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/thumbnail_image_view"
+            android:layout_toLeftOf="@id/thumbnail_image_view"
             android:maxLines="5"
             android:layout_marginLeft="@dimen/md_keylines"
             android:layout_marginStart="@dimen/md_keylines"
@@ -43,8 +46,8 @@
 
         <ImageView
             android:id="@+id/thumbnail_image_view"
-            android:layout_width="@dimen/thumb_image_width"
-            android:layout_height="@dimen/thumb_image_height"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/md_keylines"
             android:layout_marginEnd="@dimen/md_keylines"
             android:layout_marginRight="@dimen/md_keylines"

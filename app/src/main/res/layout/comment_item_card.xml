@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.MaterialComponents.CardView"
     android:id="@+id/comment_card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,28 +11,33 @@
         android:layout_marginStart="@dimen/tile_padding"
         android:layout_marginLeft="@dimen/tile_padding"
         android:layout_marginTop="@dimen/tile_padding"
-        android:layout_marginBottom="@dimen/tile_padding">
-    <TextView
-        android:id="@+id/comment_header_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/TextAppearance.MaterialComponents.Caption"
-        tools:text="author 000 points . 12 hours ago"/>
+        android:layout_marginBottom="@dimen/tile_padding"
+        android:layout_marginEnd="@dimen/tile_padding">
 
-    <TextView
-        style="@style/TextAppearance.MaterialComponents.Body2"
-        android:id="@+id/comment_body"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/tile_padding"
-        android:paddingBottom="@dimen/tile_padding"
-        android:layout_below="@+id/comment_header_text"
-        tools:text="Lorem ipsum dolor sit amet, sint vituperatoribus ad pro, sea id tation noluisse concludaturque."/>
+        <TextView
+            android:id="@+id/comment_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.MaterialComponents.Caption"
+            tools:text="author 000 points . 12 hours ago"/>
+
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Body2"
+            android:id="@+id/comment_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/tile_padding"
+            android:scrollbars="vertical"
+            android:layout_below="@+id/comment_header_text"
+            tools:text="Lorem ipsum dolor sit amet, sint vituperatoribus ad pro, sea id tation noluisse concludaturque."/>
 
         <Button
+            style="?android:attr/borderlessButtonStyle"
+            android:id="@+id/comment_save_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/comment_body"
+            android:layout_marginTop="@dimen/tile_padding"
             android:drawableLeft="@drawable/ic_save_black_24dp"
             android:drawableStart="@drawable/ic_save_black_24dp"
             android:text="@string/save_button_name"/>

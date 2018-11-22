@@ -28,4 +28,5 @@
     <string name="settings_logout">Logout</string>
     <string name="settings_search">Search</string>
     <string name="title_activity_details">DetailsActivity</string>
+    <string name="token_refresh_error">Token can not be refreshed! Please try again later.</string>
 </resources>

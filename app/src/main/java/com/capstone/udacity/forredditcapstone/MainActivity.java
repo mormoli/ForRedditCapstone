@@ -27,7 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.capstone.udacity.forredditcapstone.model.Child;
+import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
@@ -62,9 +62,10 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.homepage_list_view)
     RecyclerView recyclerView;
     HomePageAdapter homePageAdapter;
-    private List<Child> childList;
+    private ArrayList<PostData> childList;
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
+    private int refreshCount = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,10 +90,29 @@ public class MainActivity extends AppCompatActivity {
                 userRefreshToken = sharedPreferences.getString("refreshToken", null);
             }
 
-            if (TextUtils.isEmpty(userAccessToken) && TextUtils.isEmpty(userRefreshToken)) {
+            if (savedInstanceState == null && TextUtils.isEmpty(userAccessToken)) {
                 Intent intent = new Intent(this, LoginActivity.class);
                 intent.putExtra("user", "new user");
                 startActivity(intent);
+            } else if(savedInstanceState != null){
+                childList = savedInstanceState.getParcelableArrayList("homepage");
+                populateUI(childList);
+                /*recyclerView.getViewTreeObserver()
+                        .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                            @Override
+                            public void onGlobalLayout() {
+                                //At this point the layout is complete and the
+                                //dimensions of recyclerView and any child views are known.
+                                //Remove listener after changed RecyclerView's height to prevent infinite loop
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                                    recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                    recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+                                } else {
+                                    recyclerView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                                    recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+                                }
+                            }
+                        });*/
             } else {
                 //retrieve data from user's home page
                 getHomePage(userAccessToken);
@@ -180,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         //put over18 value in map --> must be off in order to app Safe For Work!!
         Map<String, String> map = new HashMap<>();
         map.put("limit", "25");
-        map.put("sort", "new");
+        map.put("sort", "top");
         map.put("include_over_18", "off");
         Call<SubredditList> call = theRedditApi.getHomePage(authorization, map);
 
@@ -191,13 +211,15 @@ public class MainActivity extends AppCompatActivity {
                 assert response.body() != null;
                 if(childList == null) childList = new ArrayList<>();
                 if(response.code() == 200) {
-                    childList.addAll(response.body().getData().getChildren());
-                    Log.d(TAG, " array title: " + childList.get(0).getData().getTitle());
+                    for(int i=0; i<response.body().getData().getChildren().size(); i++)
+                        childList.add(response.body().getData().getChildren().get(i).getData());
+                    //Log.d(TAG, " array title: " + childList.get(0).getData().getTitle());
                     Log.d(TAG, " data size: " + childList.size());
                     populateUI(childList);
                 } else { //probably error code is 401 --> try refresh the token then call method again
                     Log.d(TAG, " response code: " + response.code());
-                    getAccessToken();
+                    if(refreshCount < 2) getAccessToken();
+                    else Toast.makeText(getApplicationContext(), getString(R.string.token_refresh_error), Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -207,8 +229,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    public void populateUI(final List<Child> childList){
+    /*
+    * Method that populates recycler view of activity with reddit's post data*/
+    public void populateUI(final List<PostData> childList){
         homePageAdapter = new HomePageAdapter(childList, new HomePageAdapter.ButtonsListener(){
 
             @Override
@@ -222,11 +245,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onLayoutClicked(int position) {
+            public void onLayoutClicked(int position, PostData postData, String ups, String comments) {
                 //open detailed post view
-                String subredditName = childList.get(position).getData().getSubredditName();
-                String postId = childList.get(position).getData().getId();
+                String subredditName = childList.get(position).getSubredditName();
+                String postId = childList.get(position).getId();
                 Intent intent = new Intent(getApplicationContext(), DetailsActivity.class);
+                intent.putExtra("postData", postData);
+                intent.putExtra("points", ups);
+                intent.putExtra("comments", comments);
                 intent.putExtra("subredditName", subredditName);
                 intent.putExtra("postId", postId);
                 startActivity(intent);
@@ -237,6 +263,10 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(homePageAdapter);
     }
+    /*
+    * Method that retrieves logged user info like name - id etc.
+    * adding username to the shared preferences for future call about hide/save/subscribe options
+    * */
     private void getUserInfo(){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
@@ -244,16 +274,22 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
         String authorization = "bearer " + userAccessToken;
+        Map<String, String> map = new HashMap<>();
+        map.put("scope", "identity");
 
-        Call<UserInfo> call = theRedditApi.getUserInfo(authorization);
+        Call<UserInfo> call = theRedditApi.getUserInfo(authorization, map);
         call.enqueue(new Callback<UserInfo>() {
             @Override
             public void onResponse(@NonNull Call<UserInfo> call, @NonNull Response<UserInfo> response) {
                 Log.d(TAG, " server response: " + response.toString());
                 assert response.body() != null;
+                Log.d(TAG, " Access Token : " + userAccessToken);
                 Log.d(TAG, " username: " + response.body().getUserName());
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("username", response.body().getUserName()).apply();
                 Log.d(TAG, " id: " + response.body().getUserId());
                 Log.d(TAG, " over18: " + response.body().isOver18());
+                Log.d(TAG, " response string: " +response.body().toString());
             }
 
             @Override
@@ -267,6 +303,7 @@ public class MainActivity extends AppCompatActivity {
     * If you request permanent access, then you will need to refresh the tokens after 1 hour.
     * */
     private void getAccessToken(){
+        refreshCount++;
         OkHttpClient client = new OkHttpClient();
         Log.d(TAG, "getAccessToken called.");
         String authString = Constants.CLIENT_ID + ":";
@@ -367,16 +404,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         //restoring scrolling position
-        recyclerViewState = savedInstanceState.getParcelable("scroll_state");
+        if(savedInstanceState != null)
+            recyclerViewState = savedInstanceState.getParcelable("scroll_state");
+        //childList = savedInstanceState.getParcelableArrayList("homepage");
     }
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        //save the response for the homepage
+        //saving list requires casting --> (ArrayList<? extends Parcelable>)
+        //instead of casting, changed list attribute childList element to ArrayList<>
+        outState.putParcelableArrayList("homepage", childList);
         //saving scrolling position of recycler view
         if(recyclerView != null && childList != null){
+            //int lastVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
             recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
             outState.putParcelable("scroll_state", recyclerViewState);
+            //outState.putInt("scrollPosition", lastVisiblePosition);
         }
     }
 }

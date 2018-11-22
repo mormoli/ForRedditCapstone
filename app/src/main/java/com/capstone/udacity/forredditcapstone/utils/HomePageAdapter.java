@@ -1,6 +1,5 @@
 package com.capstone.udacity.forredditcapstone.utils;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.card.MaterialCardView;
 import android.support.v7.widget.RecyclerView;
@@ -8,13 +7,12 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.capstone.udacity.forredditcapstone.R;
-import com.capstone.udacity.forredditcapstone.model.Child;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.squareup.picasso.Picasso;
 
@@ -24,13 +22,13 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePageHolder> {
-    private List<Child> childList;
+    private List<PostData> childList;
     private ButtonsListener buttonsListener;
     private static final int SECOND_MILLIS = 1000;
     private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
-    public HomePageAdapter(List<Child> childList, ButtonsListener buttonsListener){
+    public HomePageAdapter(List<PostData> childList, ButtonsListener buttonsListener){
         this.childList = childList;
         this.buttonsListener = buttonsListener;
     }
@@ -100,48 +98,24 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     @Override
     public void onBindViewHolder(@NonNull final HomePageHolder holder, int position) {
-        PostData data = childList.get(position).getData();
+        //PostData data = childList.get(position).getData();
         //Header of the card
-        String header = data.getSubredditNamePrefixed() + " . posted bu u/"+ data.getAuthor() +" "+ getTimeAgo(data.getCreatedUTC());
+        String header = childList.get(position).getSubredditNamePrefixed() + " . posted bu u/"+ childList.get(position).getAuthor() +" "+ getTimeAgo(childList.get(position).getCreatedUTC());
         holder.headerText.setText(header);
 
-        if(!TextUtils.isEmpty(data.getThumbnail())){
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.postTitle.getLayoutParams();
-            //holder.postImage.setLayoutParams(new RelativeLayout.LayoutParams(100,80));
-            if(holder.postImage.getVisibility() == View.GONE) holder.postImage.setVisibility(View.VISIBLE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                params.addRule(RelativeLayout.START_OF, R.id.thumbnail_image_view);
-            } else {
-                params.addRule(RelativeLayout.LEFT_OF, R.id.thumbnail_image_view);
-            }
-            holder.postTitle.setLayoutParams(params);
-            holder.materialCardView.invalidate();
-            holder.materialCardView.requestLayout();
+        if(!TextUtils.isEmpty(childList.get(position).getThumbnail())){
             Picasso.get()
-                    .load(data.getThumbnail())
-                    //.resize(400, 300)
-                    //.onlyScaleDown() //// the image will only be resized if it's bigger than 120x120 pixels.
+                    .load(childList.get(position).getThumbnail())
+                    .resizeDimen(R.dimen.thumb_image_width, R.dimen.thumb_image_height)
+                    //.resize(width, height)
+                    //.onlyScaleDown() //// the image will only be resized if it's bigger than widthxheight pixels.
                     .into(holder.postImage);
         } else {
-            if(holder.postImage.getVisibility() == View.VISIBLE){
-                //holder.postImage.setLayoutParams(new RelativeLayout.LayoutParams(0,0));
-                holder.postImage.setVisibility(View.GONE);
-                //holder.postImage.invalidate();
-                //holder.postImage.requestLayout();
-            }
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) holder.postTitle.getLayoutParams();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                params.removeRule(RelativeLayout.START_OF);
-            } else {
-                params.addRule(RelativeLayout.LEFT_OF, 0);
-            }
-            holder.postTitle.setLayoutParams(params);
-            holder.materialCardView.invalidate();
-            holder.materialCardView.requestLayout();
+            holder.postImage.setVisibility(View.GONE);
         }
         //post title
-        if(!TextUtils.isEmpty(data.getTitle())){
-            holder.postTitle.setText(data.getTitle());
+        if(!TextUtils.isEmpty(childList.get(position).getTitle())){
+            holder.postTitle.setText(childList.get(position).getTitle());
         } else holder.postTitle.setVisibility(View.GONE);
         //set sub text if exist or visibility gone
         //if(!TextUtils.isEmpty(data.getSelftext())) holder.postSubtitle.setText(data.getSelftext());
@@ -149,9 +123,9 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         //Footer items
         //format numbers for ups and comments
         //@see 'https://stackoverflow.com/questions/4753251/how-to-go-about-formatting-1200-to-1-2k-in-java'
-        String ups = numberFormat(data.getUps()) + " points";
+        final String ups = numberFormat(childList.get(position).getUps()) + " points";
         holder.points.setText(ups);
-        String comments = numberFormat(data.getNumComments()) + " comments";
+        final String comments = numberFormat(childList.get(position).getNumComments()) + " comments";
         holder.comments.setText(comments);
         //BUTTONS setting click listeners
         holder.hideButton.setOnClickListener(new View.OnClickListener() {
@@ -171,7 +145,19 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         holder.materialCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                buttonsListener.onLayoutClicked(holder.getAdapterPosition());
+                PostData postData = new PostData();
+                postData.setSubredditNamePrefixed(holder.headerText.getText().toString());
+                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getThumbnail()))
+                    postData.setThumbnail(childList.get(holder.getAdapterPosition()).getThumbnail());
+                postData.setTitle(childList.get(holder.getAdapterPosition()).getTitle());
+                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getSelftext()))
+                    postData.setSelftext(childList.get(holder.getAdapterPosition()).getSelftext());
+                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getImageDetailURL())) {
+                    String ext = MimeTypeMap.getFileExtensionFromUrl(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                    if(!TextUtils.isEmpty(ext) && (ext.equals("jpg") || ext.equals("png")))
+                        postData.setImageDetailURL(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                }
+                buttonsListener.onLayoutClicked(holder.getAdapterPosition(), postData, ups, comments);
             }
         });
     }
@@ -192,6 +178,6 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
     public interface ButtonsListener{
         void onHideButtonClick(View view, int position);
         void onSaveButtonClick(View view, int position);
-        void onLayoutClicked(int position);
+        void onLayoutClicked(int position, PostData postData, String ups, String comments);
     }
 }

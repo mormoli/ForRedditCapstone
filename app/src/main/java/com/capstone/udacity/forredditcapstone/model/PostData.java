@@ -43,6 +43,8 @@ public class PostData implements Parcelable {
     private boolean over18;
     @SerializedName("permalink")
     private String permalink;
+    @SerializedName("url")
+    private String imageDetailURL;
 
     public String getSubredditName() {
         return subredditName;
@@ -140,6 +142,14 @@ public class PostData implements Parcelable {
         this.permalink = permalink;
     }
 
+    public String getImageDetailURL() {
+        return imageDetailURL;
+    }
+
+    public void setImageDetailURL(String imageDetailURL) {
+        this.imageDetailURL = imageDetailURL;
+    }
+
     private PostData(Parcel in){
         this.subredditName = in.readString();
         this.id = in.readString();
@@ -153,6 +163,7 @@ public class PostData implements Parcelable {
         this.numComments = in.readInt();
         this.over18 = in.readByte() != 0;
         this.permalink = in.readString();
+        this.imageDetailURL = in.readString();
     }
 
     @Override
@@ -174,6 +185,7 @@ public class PostData implements Parcelable {
         dest.writeInt(this.numComments);
         dest.writeByte((byte) (this.over18 ? 1 : 0));
         dest.writeString(this.permalink);
+        dest.writeString(this.imageDetailURL);
     }
 
     @NonNull

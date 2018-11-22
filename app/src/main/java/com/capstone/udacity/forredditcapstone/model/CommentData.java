@@ -25,8 +25,8 @@ public class CommentData implements Parcelable {
     private String body;
     @SerializedName("created_utc")
     private int createdUTC;
-    @SerializedName("replies")
-    private List<Replies> replies;
+    //@SerializedName("replies")
+    //private List<Replies> replies;
 
     public CommentData(){}
 
@@ -62,13 +62,13 @@ public class CommentData implements Parcelable {
         this.createdUTC = createdUTC;
     }
 
-    public List<Replies> getReplies() {
+    /*public List<Replies> getReplies() {
         return replies;
     }
 
     public void setReplies(List<Replies> replies) {
         this.replies = replies;
-    }
+    }*/
 
     @Override
     public int describeContents() {
