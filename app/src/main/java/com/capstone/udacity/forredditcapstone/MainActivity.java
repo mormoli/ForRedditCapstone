@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
+import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.HomePageAdapter;
 import com.capstone.udacity.forredditcapstone.utils.TheRedditApi;
@@ -66,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
     private int refreshCount = 0;
+    private String searchString;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -186,6 +188,42 @@ public class MainActivity extends AppCompatActivity {
         SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));*/
         return true;
+    }
+    /*
+    * Method that returns subreddit search results
+    * */
+    public void getSearchResults(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.BASE_OAUTH_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
+        String authorization = "bearer " + userAccessToken;
+        Map<String, String> map = new HashMap<>();
+        map.put("?q=", searchString);
+        map.put("limit", "10");
+        map.put("include_over_18", "off");
+        Call<SearchList> call = theRedditApi.getSearchResults(authorization, map);
+
+        call.enqueue(new Callback<SearchList>() {
+            @Override
+            public void onResponse(@NonNull Call<SearchList> call, @NonNull Response<SearchList> response) {
+                Log.d(TAG, " server response: " + response.toString());
+
+                if(response.code() == 200){
+                    assert response.body() != null;
+                    Log.d(TAG, " subredditname : " + response.body().getData().getChildren().get(0).getSearchData().getDisplayName());
+                    Log.d(TAG, " description : " + response.body().getData().getChildren().get(0).getSearchData().getPublicDescription());
+                } else {
+                    Log.d(TAG, "returned code : " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<SearchList> call, @NonNull Throwable t) {
+                Log.e(TAG, " retrofit error: " + t.getMessage());
+            }
+        });
     }
     //https://www.getpostman.com
     //Postman app used to create returning values

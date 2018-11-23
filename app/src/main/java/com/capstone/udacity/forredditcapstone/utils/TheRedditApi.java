@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import com.capstone.udacity.forredditcapstone.model.CommentList;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
+import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 
 import java.util.List;
 import java.util.Map;
@@ -32,11 +33,7 @@ public interface TheRedditApi {
     @GET("/api/v1/me")
     @Headers(Constants.USER_AGENT)
     Call<UserInfo> getUserInfo(@Header("Authorization") String authorization, @QueryMap Map<String , String > parameters);
-    //@see 'https://www.reddit.com/r/redditdev/comments/197x36/using_oauth_to_send_valid_requests/'
-    /*@POST("/api/v1/access_token") refresing access token with okhttp3
-    @Headers(Constants.USER_AGENT)
-    Call<RefreshToken> getAccessToken(@Header("Authorization") String auth, @Field("grant_type") String grantType,
-                                      @Field("refresh_token") String refreshToken);*/
+
     //POST /api/hide : Hide a link. This removes it from the user's default view of subreddit listings.
     //POST /api/save : Save a link or comment.
     //GET /user/username/saved : saved posts or comments
@@ -45,6 +42,11 @@ public interface TheRedditApi {
     // If include_over_18 is false-off, subreddits with over-18 content restrictions will be filtered from the results.
     //POST /api/comment : Submit a new comment or reply to a message.
     //POST /api/subscribe : Subscribe to or unsubscribe from a subreddit.
+    //GET /subreddits/search : Search subreddits by title and description.
+    @GET("/subreddits/search.json")
+    @Headers(Constants.USER_AGENT)
+    Call<SearchList> getSearchResults(@Header("Authorization") String authorization, @QueryMap Map<String, String > map);
+
     @GET("/r/{subredditName}/comments/{postId}.json")
     @Headers(Constants.USER_AGENT)
     Call<List<CommentList>> getPostComments(@Header("Authorization") String authorization,

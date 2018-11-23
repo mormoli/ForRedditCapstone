@@ -95,7 +95,7 @@ public class DetailsActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
         userAccessToken = sharedPreferences.getString("accessToken", null);
         userRefreshToken = sharedPreferences.getString("refreshToken", null);
-        if(getIntent().hasExtra("postId")){
+        if(getIntent().hasExtra("postId") && savedInstanceState == null){
             //PostData class return all objects for header
             postData = getIntent().getParcelableExtra("postData");
             //getting points and comments
