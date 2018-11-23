@@ -1,5 +1,6 @@
 package com.capstone.udacity.forredditcapstone;
 
+import android.app.SearchManager;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
@@ -13,11 +14,13 @@ import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -30,6 +33,7 @@ import android.widget.Toast;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
+import com.capstone.udacity.forredditcapstone.model.search.SearchData;
 import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.HomePageAdapter;
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     HomePageAdapter homePageAdapter;
     private ArrayList<PostData> childList;
+    private List<SearchData> searchData;
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
     private int refreshCount = 0;
@@ -184,9 +189,29 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         // Retrieve the SearchView and plug it into SearchManager
-        /*final SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
-        SearchManager searchManager = (SearchManager) getSystemService(SEARCH_SERVICE);
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));*/
+        //@see 'https://developer.android.com/guide/topics/search/search-dialog#java'
+        final SearchView searchView = (SearchView) menu.findItem(R.id.settings_search).getActionView();
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                if(s.length() >= 3){
+                    searchString = s;
+                    Log.d(TAG, " Search String: " + searchString);
+                    getSearchResults();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Search text must be minimum of 3 characters.", Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+
+                return false;
+            }
+        });
         return true;
     }
     /*
@@ -199,8 +224,8 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
         String authorization = "bearer " + userAccessToken;
-        Map<String, String> map = new HashMap<>();
-        map.put("?q=", searchString);
+        Map<String, Object> map = new HashMap<>();
+        map.put("q", searchString);
         map.put("limit", "10");
         map.put("include_over_18", "off");
         Call<SearchList> call = theRedditApi.getSearchResults(authorization, map);
@@ -212,8 +237,18 @@ public class MainActivity extends AppCompatActivity {
 
                 if(response.code() == 200){
                     assert response.body() != null;
-                    Log.d(TAG, " subredditname : " + response.body().getData().getChildren().get(0).getSearchData().getDisplayName());
-                    Log.d(TAG, " description : " + response.body().getData().getChildren().get(0).getSearchData().getPublicDescription());
+                    if(response.body().getData().getChildren().size() > 0) {
+                        if(searchData == null) searchData = new ArrayList<>();
+                        for(int i=0; i<response.body().getData().getChildren().size(); i++)
+                            searchData.add(response.body().getData().getChildren().get(i).getSearchData());
+                        Log.d(TAG, " DATA : " + searchData.get(0).toString());
+                    } else{
+                        Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
+                    }
+                    //Log.d(TAG, " if result not found : " + response.body().toString());
+                    //Log.d(TAG, " subredditname : " + response.body().getData().getChildren().get(1).getSearchData().getDisplayName());
+                    //Log.d(TAG, " description : " + response.body().getData().getChildren().get(1).getSearchData().getPublicDescription());
+                    //Log.d(TAG, " returned query size: " + response.body().getData().getChildren().size());
                 } else {
                     Log.d(TAG, "returned code : " + response.code());
                 }
@@ -348,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
         String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
 
         Request request = new Request.Builder()
-                .addHeader("User-Agent", "For Reddit Capstone")
+                .addHeader("User-Agent", "android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)")
                 .addHeader("Authorization", "Basic " + encodedAuthString)
                 .url(Constants.ACCESS_TOKEN_URL)
                 .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"),

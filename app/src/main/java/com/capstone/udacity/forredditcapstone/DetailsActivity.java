@@ -222,7 +222,7 @@ public class DetailsActivity extends AppCompatActivity {
         String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
 
         Request request = new Request.Builder()
-                .addHeader("User-Agent", "For Reddit Capstone")
+                .addHeader("User-Agent", "android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)")
                 .addHeader("Authorization", "Basic " + encodedAuthString)
                 .url(Constants.ACCESS_TOKEN_URL)
                 .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"),

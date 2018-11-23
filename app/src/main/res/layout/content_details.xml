@@ -49,8 +49,6 @@
             android:layout_marginRight="@dimen/md_keylines"
             android:layout_marginBottom="@dimen/md_keylines"
             android:layout_below="@+id/post_title_text"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:scaleType="centerCrop"
             android:adjustViewBounds="true"
             android:contentDescription="@string/default_icon_description"/>

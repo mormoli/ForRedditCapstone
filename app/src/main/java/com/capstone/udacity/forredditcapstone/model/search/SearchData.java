@@ -3,6 +3,8 @@ package com.capstone.udacity.forredditcapstone.model.search;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 public class SearchData implements Parcelable {
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator(){
         public SearchData createFromParcel(Parcel in){
@@ -13,18 +15,29 @@ public class SearchData implements Parcelable {
             return new SearchData[size];
         }
     };
-
+    @SerializedName("banner_img")
     private String bannerImage;
+    @SerializedName("public_description")
     private String publicDescription;
+    @SerializedName("community_icon")
     private String communityIcon;
+    @SerializedName("display_name_prefixed")
     private String displayNamePrefixed;
+    @SerializedName("display_name")
     private String displayName;
+    @SerializedName("title")
     private String title;
+    @SerializedName("id")
     private String id;
+    @SerializedName("description")
     private String description;
+    @SerializedName("submit_text")
     private String submitText;
+    @SerializedName("subscribers")
     private int subscribers;
+    @SerializedName("created_utc")
     private int createdUTC;
+    @SerializedName("user_is_subscriber")
     private boolean userIsSubscriber;
 
     public String getBannerImage() {
@@ -157,5 +170,15 @@ public class SearchData implements Parcelable {
         dest.writeInt(this.subscribers);
         dest.writeInt(this.createdUTC);
         dest.writeByte((byte) (this.userIsSubscriber ? 1 : 0));
+    }
+
+    @Override
+    public String toString() {
+        return "SearchData{" +
+                "publicDescription='" + publicDescription + '\'' +
+                ", displayNamePrefixed='" + displayNamePrefixed + '\'' +
+                ", title='" + title + '\'' +
+                ", id='" + id + '\'' +
+                '}';
     }
 }
