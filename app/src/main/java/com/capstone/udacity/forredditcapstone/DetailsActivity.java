@@ -306,6 +306,7 @@ public class DetailsActivity extends AppCompatActivity {
             outState.putString("points", customizedPoints);
             outState.putString("comments", customizedComments);
             recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
+            outState.putParcelable("scroll_state", recyclerViewState);
         }
     }
 }

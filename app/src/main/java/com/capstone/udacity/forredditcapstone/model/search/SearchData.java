@@ -37,6 +37,8 @@ public class SearchData implements Parcelable {
     private int subscribers;
     @SerializedName("created_utc")
     private int createdUTC;
+    @SerializedName("name")
+    private String fullName;
     @SerializedName("user_is_subscriber")
     private boolean userIsSubscriber;
 
@@ -128,6 +130,14 @@ public class SearchData implements Parcelable {
         this.createdUTC = createdUTC;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     public boolean isUserIsSubscriber() {
         return userIsSubscriber;
     }
@@ -148,6 +158,7 @@ public class SearchData implements Parcelable {
         this.submitText = in.readString();
         this.subscribers = in.readInt();
         this.createdUTC = in.readInt();
+        this.fullName = in.readString();
         this.userIsSubscriber = in.readByte() != 0;
     }
 
@@ -169,6 +180,7 @@ public class SearchData implements Parcelable {
         dest.writeString(this.submitText);
         dest.writeInt(this.subscribers);
         dest.writeInt(this.createdUTC);
+        dest.writeString(this.fullName);
         dest.writeByte((byte) (this.userIsSubscriber ? 1 : 0));
     }
 

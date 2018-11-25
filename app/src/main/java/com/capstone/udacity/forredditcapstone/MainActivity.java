@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.PostData;
@@ -66,9 +69,12 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     @BindView(R.id.homepage_list_view)
     RecyclerView recyclerView;
+    //@BindView(R.id.search_list_fragment)
+    //Fragment searchFrameLayout;
     HomePageAdapter homePageAdapter;
     private ArrayList<PostData> childList;
     private List<SearchData> searchData;
+    private SearchView searchView;
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
     private int refreshCount = 0;
@@ -190,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         // Retrieve the SearchView and plug it into SearchManager
         //@see 'https://developer.android.com/guide/topics/search/search-dialog#java'
-        final SearchView searchView = (SearchView) menu.findItem(R.id.settings_search).getActionView();
+        searchView = (SearchView) menu.findItem(R.id.settings_search).getActionView();
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -214,10 +220,34 @@ public class MainActivity extends AppCompatActivity {
         });
         return true;
     }
+
+    public void openSearchListView(){
+        Intent intent = new Intent(this, SearchListActivity.class);
+        intent.putParcelableArrayListExtra("searchData", (ArrayList<? extends Parcelable>) searchData);
+        startActivity(intent);
+    }
+    /*
+    * Method that initialize search fragment
+    * */
+    /*public void initSearchFragment(){
+        Log.d(TAG, "search fragment init");
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("searchData", (ArrayList<? extends Parcelable>) searchData);
+        SearchListFragment searchListFragment = new SearchListFragment();
+        searchListFragment.setArguments(bundle);
+        //if(recyclerView.getVisibility() == View.VISIBLE) recyclerView.setVisibility(View.GONE);
+        //if(searchFrameLayout.getVisibility() == View.GONE) recyclerView.setVisibility(View.VISIBLE);
+        //Begin the transaction
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.search_list_fragment, searchListFragment);
+        fragmentTransaction.commit();
+    }*/
     /*
     * Method that returns subreddit search results
     * */
     public void getSearchResults(){
+        searchView.setQuery("", false); //clear the text
+        searchView.setIconified(true);//close the search view
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -242,13 +272,11 @@ public class MainActivity extends AppCompatActivity {
                         for(int i=0; i<response.body().getData().getChildren().size(); i++)
                             searchData.add(response.body().getData().getChildren().get(i).getSearchData());
                         Log.d(TAG, " DATA : " + searchData.get(0).toString());
+                        //initSearchFragment();
+                        openSearchListView();
                     } else{
                         Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
                     }
-                    //Log.d(TAG, " if result not found : " + response.body().toString());
-                    //Log.d(TAG, " subredditname : " + response.body().getData().getChildren().get(1).getSearchData().getDisplayName());
-                    //Log.d(TAG, " description : " + response.body().getData().getChildren().get(1).getSearchData().getPublicDescription());
-                    //Log.d(TAG, " returned query size: " + response.body().getData().getChildren().size());
                 } else {
                     Log.d(TAG, "returned code : " + response.code());
                 }

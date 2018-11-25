@@ -45,7 +45,7 @@ public interface TheRedditApi {
     //GET /subreddits/search : Search subreddits by title and description.
     @GET("/subreddits/search.json")
     @Headers(Constants.USER_AGENT)
-    Call<SearchList> getSearchResults(@Header("Authorization") String authorization, @QueryMap Map<String, Object > map);
+    Call<SearchList> getSearchResults(@Header("Authorization") String authorization, @QueryMap Map<String, Object > parameters);
 
     @GET("/r/{subredditName}/comments/{postId}.json")
     @Headers(Constants.USER_AGENT)
@@ -53,4 +53,6 @@ public interface TheRedditApi {
                                             @Path(value = "subredditName") String subredditName,
                                             @Path(value = "postId") String postId,
                                             @QueryMap Map<String , String > parameters);
+    // https://www.reddit.com/dev/api/oauth/#POST_api_subscribe
+
 }
