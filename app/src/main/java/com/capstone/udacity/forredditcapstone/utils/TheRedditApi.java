@@ -42,7 +42,10 @@ public interface TheRedditApi {
     //POST /api/hide : Hide a link. This removes it from the user's default view of subreddit listings.
     //POST /api/save : Save a link or comment.
     //GET /user/username/saved : saved posts or comments
-    //@GET("/r/{subbreddit_name}/.json")
+    @GET("/r/{subredditName}/.json")
+    @Headers(Constants.USER_AGENT)
+    Call<SubredditList> getSubredditHomePage(@Header("Authorization") String authorization, @Path(value = "subredditName") String subredditName,
+                                             @QueryMap Map<String , String > parameters);
     //POST /api/search_subreddits : Subreddits whose names begin with query will be returned.
     // If include_over_18 is false-off, subreddits with over-18 content restrictions will be filtered from the results.
     //POST /api/comment : Submit a new comment or reply to a message.

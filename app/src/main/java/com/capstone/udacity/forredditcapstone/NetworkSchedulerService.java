@@ -44,8 +44,7 @@ public class NetworkSchedulerService extends JobService implements ConnectivityR
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
         if(!isConnected){
-            String message = "No Internet Access !";
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.internet_connectivity_error), Toast.LENGTH_LONG).show();
         }
     }
 }
