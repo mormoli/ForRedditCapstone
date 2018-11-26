@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Widget.MaterialComponents.CardView"
     android:id="@+id/comment_card_view"
     android:layout_width="match_parent"
@@ -31,15 +32,15 @@
             android:layout_below="@+id/comment_header_text"
             tools:text="Lorem ipsum dolor sit amet, sint vituperatoribus ad pro, sea id tation noluisse concludaturque."/>
 
-        <Button
-            style="?android:attr/borderlessButtonStyle"
+        <android.support.design.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button"
             android:id="@+id/comment_save_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/comment_body"
             android:layout_marginTop="@dimen/tile_padding"
-            android:drawableLeft="@drawable/ic_save_black_24dp"
-            android:drawableStart="@drawable/ic_save_black_24dp"
+            app:cornerRadius="@dimen/md_keylines"
+            app:backgroundTint="@color/colorPrimary"
             android:text="@string/save_button_name"/>
     </RelativeLayout>
 

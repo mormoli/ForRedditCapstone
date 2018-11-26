@@ -29,6 +29,7 @@
     <string name="settings_search">Search</string>
     <string name="title_activity_details">DetailsActivity</string>
     <string name="token_refresh_error">Token can not be refreshed! Please try again later.</string>
+    <string name="subreddit_list_error">User Subreddit List is empty!!</string>
     <string name="search_hint">Search Subreddits.</string>
     <string name="subscribe_button">subscribe</string>
     <string name="unsubscribe_button">unsubscribe</string>

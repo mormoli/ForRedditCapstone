@@ -4,10 +4,12 @@ import com.capstone.udacity.forredditcapstone.model.CommentList;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
 import com.capstone.udacity.forredditcapstone.model.search.SearchList;
+import com.capstone.udacity.forredditcapstone.model.subreddits.SubList;
 
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
@@ -33,7 +35,10 @@ public interface TheRedditApi {
     @GET("/api/v1/me")
     @Headers(Constants.USER_AGENT)
     Call<UserInfo> getUserInfo(@Header("Authorization") String authorization, @QueryMap Map<String , String > parameters);
-
+    //https://stackoverflow.com/questions/43798263/handling-retrofit-status-codes-without-a-pojo-class
+    @GET("/subreddits/mine/subscriber")
+    @Headers(Constants.USER_AGENT)
+    Call<SubList> getSubredditList(@Header("Authorization") String authorization, @QueryMap Map<String, String> parameters);
     //POST /api/hide : Hide a link. This removes it from the user's default view of subreddit listings.
     //POST /api/save : Save a link or comment.
     //GET /user/username/saved : saved posts or comments

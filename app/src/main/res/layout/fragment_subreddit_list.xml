@@ -3,17 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".SearchListFragment">
+    tools:context=".SubredditListFragment">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/search_list_view"
+        android:id="@+id/subreddit_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:scrollbarStyle="outsideOverlay"
         android:paddingLeft="@dimen/list_side_margin"
         android:paddingRight="@dimen/list_side_margin"
-        tools:listItem="@layout/search_list_item">
+        tools:listItem="@layout/subreddit_list_item">
 
     </android.support.v7.widget.RecyclerView>
 

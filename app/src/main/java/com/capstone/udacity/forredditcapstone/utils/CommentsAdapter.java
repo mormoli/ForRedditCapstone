@@ -78,7 +78,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
 
     @Override
     public void onBindViewHolder(@NonNull final CommentsHolder commentsHolder, int position) {
-        String authorHeader = commentLists.get(position).getAuthor() + " " + numberFormat(commentLists.get(position).getScore()) + "points . " + getTimeAgo(commentLists.get(position).getCreatedUTC());
+        String authorHeader = commentLists.get(position).getAuthor() + " " + numberFormat(commentLists.get(position).getScore()) + " points . " + getTimeAgo(commentLists.get(position).getCreatedUTC());
         commentsHolder.commentHeader.setText(authorHeader);
         commentsHolder.commentBody.setText(commentLists.get(position).getBody());
         //setting listener on save button and to comment layout

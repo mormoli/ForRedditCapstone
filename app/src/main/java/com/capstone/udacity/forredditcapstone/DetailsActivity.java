@@ -157,7 +157,7 @@ public class DetailsActivity extends AppCompatActivity {
         map.put("limit", "25");
 
         Call<List<CommentList>> call = theRedditApi.getPostComments(authorization, subredditName, postId, map);
-
+        //returning only root comments in other word just post related comments not all comments of comments ...
         call.enqueue(new Callback<List<CommentList>>() {
             @Override
             public void onResponse(@NonNull Call<List<CommentList>> call, @NonNull Response<List<CommentList>> response) {
@@ -166,14 +166,16 @@ public class DetailsActivity extends AppCompatActivity {
                 if(commentList == null) commentList = new ArrayList<>();
                 if(response.code() == 200) {
                     //Log.d(TAG, " author : " + response.body().get(1).getData().getChildren().get(1).getData().getAuthor());
-                    Log.d(TAG, " Server Response Body: " + response.body().toString());
-                    Log.d(TAG, " Comment Author: " + response.body().get(1).getData().getChildren().get(0).getData().getAuthor());
-                    Log.d(TAG, " Comment :" + response.body().get(1).getData().getChildren().get(0).getData().getBody());
-                    Log.d(TAG, " all comments size: " +response.body().get(1).getData().getChildren().size());
-                    for(int i=0; i < response.body().get(1).getData().getChildren().size(); i++ )
-                        commentList.add(response.body().get(1).getData().getChildren().get(i).getData());
-                    //populating list view
-                    populateListView();
+                    if(response.body().get(1).getData().getChildren().size() > 0) {
+                        Log.d(TAG, " Server Response Body: " + response.body().toString());
+                        Log.d(TAG, " Comment Author: " + response.body().get(1).getData().getChildren().get(0).getData().getAuthor());
+                        Log.d(TAG, " Comment :" + response.body().get(1).getData().getChildren().get(0).getData().getBody());
+                        // size() - 1 last item is null.
+                        for (int i = 0; i < response.body().get(1).getData().getChildren().size() - 1; i++)
+                            commentList.add(response.body().get(1).getData().getChildren().get(i).getData());
+                        //populating list view
+                        populateListView();
+                    }
                 } else {
                     Log.d(TAG, " response code: " + response.code());
                     if(refreshCount < 2) getAccessToken();

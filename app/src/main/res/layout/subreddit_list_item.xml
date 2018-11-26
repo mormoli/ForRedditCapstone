@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.card.MaterialCardView
+    style="@style/Widget.MaterialComponents.CardView"
+    android:id="@+id/subreddit_list_item_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:id="@+id/search_card_header_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/tile_padding"
+            tools:text="r/linux : Linux, GNU/Linux, free software..."/>
+
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Body2"
+            android:id="@+id/search_card_body_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/tile_padding"
+            android:layout_below="@id/search_card_header_text"
+            tools:text="All things Linux and GNU/Linux -- this is neither a community exclusively about the kernel Linux, nor is exclusively about the GNU operating system."/>
+
+        <TextView
+            android:id="@+id/search_card_subscribers_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="@dimen/md_keylines"
+            android:layout_marginLeft="@dimen/tile_padding"
+            android:layout_marginStart="@dimen/tile_padding"
+            android:layout_below="@+id/search_card_body_text"
+            tools:text="340k Subscribers"/>
+
+        <android.support.design.button.MaterialButton
+            style="@style/Widget.MaterialComponents.Button"
+            android:id="@+id/subscribe_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/search_card_body_text"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="@dimen/tile_padding"
+            android:layout_marginEnd="@dimen/tile_padding"
+            android:layout_marginBottom="@dimen/tile_padding"
+            app:cornerRadius="@dimen/md_keylines"
+            app:backgroundTint="@color/colorAccent"
+            android:text="@string/unsubscribe_button"/>
+    </RelativeLayout>
+
+</android.support.design.card.MaterialCardView>

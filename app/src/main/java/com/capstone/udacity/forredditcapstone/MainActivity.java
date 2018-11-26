@@ -38,6 +38,8 @@ import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
 import com.capstone.udacity.forredditcapstone.model.search.SearchData;
 import com.capstone.udacity.forredditcapstone.model.search.SearchList;
+import com.capstone.udacity.forredditcapstone.model.subreddits.SubList;
+import com.capstone.udacity.forredditcapstone.model.subreddits.SubListData;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.HomePageAdapter;
 import com.capstone.udacity.forredditcapstone.utils.TheRedditApi;
@@ -57,6 +59,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -175,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.settings_subreddits:
                 //retrieve subreddit list in activity
+                getSubredditList();
                 return true;
             case R.id.settings_favorites:
                 //retrieve favorite list
@@ -226,22 +230,52 @@ public class MainActivity extends AppCompatActivity {
         intent.putParcelableArrayListExtra("searchData", (ArrayList<? extends Parcelable>) searchData);
         startActivity(intent);
     }
+
+    public void openSubredditListView(List<SubListData> subListData){
+        Intent intent = new Intent(this, SubredditListActivitiy.class);
+        intent.putParcelableArrayListExtra("listData", (ArrayList<? extends Parcelable>) subListData);
+        startActivity(intent);
+    }
     /*
-    * Method that initialize search fragment
+    * Method that retrieves user subscribed subreddit list
     * */
-    /*public void initSearchFragment(){
-        Log.d(TAG, "search fragment init");
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("searchData", (ArrayList<? extends Parcelable>) searchData);
-        SearchListFragment searchListFragment = new SearchListFragment();
-        searchListFragment.setArguments(bundle);
-        //if(recyclerView.getVisibility() == View.VISIBLE) recyclerView.setVisibility(View.GONE);
-        //if(searchFrameLayout.getVisibility() == View.GONE) recyclerView.setVisibility(View.VISIBLE);
-        //Begin the transaction
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.search_list_fragment, searchListFragment);
-        fragmentTransaction.commit();
-    }*/
+    public void getSubredditList(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.BASE_OAUTH_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
+        String authorization = "bearer " + userAccessToken;
+        //default limit 25
+        Map<String, String> map = new HashMap<>();
+        map.put("scope", "mysubreddits");
+        map.put("include_over_18", "off");
+        final List<SubListData> subListData = new ArrayList<>();
+        Call<SubList> call = theRedditApi.getSubredditList(authorization, map);
+        call.enqueue(new Callback<SubList>() {
+            @Override
+            public void onResponse(@NonNull Call<SubList> call, @NonNull Response<SubList> response) {
+                Log.d(TAG, " server response: " + response.toString());
+                Log.d(TAG, " server code: " + response.code());
+                if (response.code() == 200){
+                    assert response.body() != null;
+                    Log.d(TAG, "response body string: "+ response.body().toString());
+                    if(response.body().getData().getChildren().size() > 0) {
+                        for (int i=0; i<response.body().getData().getChildren().size(); i++)
+                            subListData.add(response.body().getData().getChildren().get(i).getData());
+                        openSubredditListView(subListData);
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.subreddit_list_error), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<SubList> call, @NonNull Throwable t) {
+                Log.e(TAG, " retrofit error: " + t.getMessage());
+            }
+        });
+    }
     /*
     * Method that returns subreddit search results
     * */
@@ -271,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                         if(searchData == null) searchData = new ArrayList<>();
                         for(int i=0; i<response.body().getData().getChildren().size(); i++)
                             searchData.add(response.body().getData().getChildren().get(i).getSearchData());
-                        Log.d(TAG, " DATA : " + searchData.get(0).toString());
+                        //Log.d(TAG, " DATA : " + searchData.get(0).toString());
                         //initSearchFragment();
                         openSearchListView();
                     } else{
