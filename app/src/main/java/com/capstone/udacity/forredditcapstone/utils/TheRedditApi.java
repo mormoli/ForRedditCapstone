@@ -11,9 +11,11 @@ import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Field;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
 //https://www.reddit.com/dev/api/
@@ -40,16 +42,41 @@ public interface TheRedditApi {
     @Headers(Constants.USER_AGENT)
     Call<SubList> getSubredditList(@Header("Authorization") String authorization, @QueryMap Map<String, String> parameters);
     //POST /api/hide : Hide a link. This removes it from the user's default view of subreddit listings.
+    //@see 'https://www.reddit.com/dev/api/oauth/#POST_api_hide'
+    // id: A comma-separated list of link fullnames
+    @POST("/api/hide")
+    @Headers(Constants.USER_AGENT)
+    Call<ResponseBody> onHideClicked(@Header("Authorization") String authorization, @QueryMap Map<String, String> parameters);
     //POST /api/save : Save a link or comment.
-    //GET /user/username/saved : saved posts or comments
+    //@see 'https://www.reddit.com/dev/api/oauth/#POST_api_save'
+    @POST("/api/save")
+    @Headers(Constants.USER_AGENT)
+    Call<ResponseBody> onSaveClicked(@Header("Authorization") String authorization, @QueryMap Map<String, String> parameters);
+
     @GET("/r/{subredditName}/.json")
     @Headers(Constants.USER_AGENT)
     Call<SubredditList> getSubredditHomePage(@Header("Authorization") String authorization, @Path(value = "subredditName") String subredditName,
                                              @QueryMap Map<String , String > parameters);
-    //POST /api/search_subreddits : Subreddits whose names begin with query will be returned.
-    // If include_over_18 is false-off, subreddits with over-18 content restrictions will be filtered from the results.
-    //POST /api/comment : Submit a new comment or reply to a message.
-    //POST /api/subscribe : Subscribe to or unsubscribe from a subreddit.
+    /*
+    * POST /api/subscribe : Subscribe to or unsubscribe from a subreddit.
+    * @see 'https://www.reddit.com/dev/api/oauth/#POST_api_subscribe'
+    * @param action	: one of (sub, unsub)
+    * @param skip_initial_defaults : param can be set to True to prevent automatically subscribing the user to the current
+    *       set of defaults when they take their first subscription action.
+    *       Attempting to set it for an unsubscribe action will result in an error.
+    * @param sr / sr_name : A comma-separated list of subreddit fullnames (when using the "sr" parameter),
+    *       or of subreddit names (when using the "sr_name" parameter).
+    **/
+    @POST("/api/subscribe")
+    @Headers(Constants.USER_AGENT)
+    Call<ResponseBody> onConfirmClicked(@Header("Authorization") String authorization, @Field("action") String action,
+                                        @Field("skip_initial_defaults") boolean skipDefaults, @Field("sr_name") String srName);
+    // @see 'https://www.reddit.com/dev/api/oauth/#GET_user_{username}_{where}'
+    //GET /user/username/saved : saved posts or comments
+    @GET("/user/{username}/saved")
+    @Headers(Constants.USER_AGENT)
+    Call<ResponseBody> getUserSavedData(@Header("Authorization") String authorization,@Path(value = "username") String username,
+                                        @QueryMap Map<String, String > parameters);
     //GET /subreddits/search : Search subreddits by title and description.
     @GET("/subreddits/search.json")
     @Headers(Constants.USER_AGENT)
@@ -61,6 +88,5 @@ public interface TheRedditApi {
                                             @Path(value = "subredditName") String subredditName,
                                             @Path(value = "postId") String postId,
                                             @QueryMap Map<String , String > parameters);
-    // https://www.reddit.com/dev/api/oauth/#POST_api_subscribe
 
 }

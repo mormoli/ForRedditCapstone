@@ -46,6 +46,7 @@
             android:name=".NetworkSchedulerService"
             android:exported="true"
             android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name=".RedditPostService" />
 
         <activity
             android:name=".DetailsActivity"

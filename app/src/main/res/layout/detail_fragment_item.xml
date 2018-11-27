@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.MaterialComponents.CardView"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/md_keylines"
+    android:layout_marginBottom="@dimen/md_keylines"
+    android:layout_marginLeft="@dimen/md_keylines"
+    android:layout_marginRight="@dimen/md_keylines"
+    android:foreground="?attr/selectableItemBackground"
+    android:minHeight="@dimen/card_image_height">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <!-- header -->
+        <TextView
+            android:id="@+id/card_header_text"
+            style="@style/TextAppearance.MaterialComponents.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/md_keylines"
+            android:layout_marginLeft="@dimen/md_keylines"
+            android:layout_marginStart="@dimen/md_keylines"
+            tools:text="r/subreddit . posted by u/user 13 hours ago" />
+        <!-- center content-->
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Body1"
+            android:id="@+id/post_title_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/thumbnail_image_view"
+            android:layout_toLeftOf="@id/thumbnail_image_view"
+            android:maxLines="5"
+            android:layout_marginLeft="@dimen/md_keylines"
+            android:layout_marginStart="@dimen/md_keylines"
+            android:layout_marginTop="@dimen/tile_padding"
+            android:layout_marginBottom="@dimen/tile_padding"
+            android:layout_marginRight="@dimen/tile_padding"
+            android:layout_marginEnd="@dimen/tile_padding"
+            android:layout_below="@+id/card_header_text"
+            tools:text="TITLE OF SUBS" />
+
+        <ImageView
+            android:id="@+id/thumbnail_image_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/md_keylines"
+            android:layout_marginEnd="@dimen/md_keylines"
+            android:layout_marginRight="@dimen/md_keylines"
+            android:layout_marginBottom="@dimen/md_keylines"
+            android:layout_below="@+id/card_header_text"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/default_icon_description"/>
+
+    </RelativeLayout>
+    <!-- footer -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+
+        <TextView
+            android:id="@+id/points_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/md_keylines"
+            android:layout_marginLeft="@dimen/md_keylines"
+            android:layout_marginBottom="@dimen/tile_padding"
+            android:layout_marginRight="@dimen/tile_padding"
+            android:layout_marginEnd="@dimen/tile_padding"
+            tools:text="0000 points"/>
+
+        <TextView
+            android:id="@+id/comments_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/points_text_view"
+            android:layout_toEndOf="@id/points_text_view"
+            android:layout_toLeftOf="@id/hide_button"
+            android:layout_toStartOf="@id/hide_button"
+            android:layout_marginRight="@dimen/tile_padding"
+            android:layout_marginEnd="@dimen/tile_padding"
+            tools:text="0000 comments"/>
+
+        <ImageButton
+            style="?android:attr/borderlessButtonStyle"
+            android:id="@+id/hide_button"
+            android:layout_width="@dimen/imagebutton_size"
+            android:layout_height="@dimen/imagebutton_size"
+            android:contentDescription="@string/hide_button_description"
+            app:srcCompat="@drawable/ic_hide_black_24dp"
+            android:adjustViewBounds="true"
+            android:layout_marginEnd="@dimen/md_keylines"
+            android:layout_marginRight="@dimen/md_keylines"
+            android:layout_toLeftOf="@id/save_button"
+            android:layout_toStartOf="@id/save_button"/>
+
+        <ImageButton
+            android:id="@+id/save_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/imagebutton_size"
+            android:layout_height="@dimen/imagebutton_size"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:adjustViewBounds="true"
+            android:layout_marginEnd="@dimen/md_keylines"
+            android:layout_marginRight="@dimen/md_keylines"
+            android:contentDescription="@string/save_button_description"
+            app:srcCompat="@drawable/ic_save_black_24dp"/>
+
+    </RelativeLayout>
+
+</android.support.design.card.MaterialCardView>

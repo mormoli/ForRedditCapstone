@@ -1,6 +1,7 @@
 package com.capstone.udacity.forredditcapstone;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -24,13 +25,17 @@ public class SubredditListFragment extends Fragment {
     private RecyclerView recyclerView;
     private List<SubListData> subListData = new ArrayList<>();
     private SubListFragmentAdapter subListFragmentAdapter;
+    private OnLayoutCardSelected onLayoutCardSelected;
+    private Parcelable recyclerViewState;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
     public SubredditListFragment(){}
 
-
+    public static SubredditListFragment newInstance(){
+        return new SubredditListFragment();
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,14 +75,45 @@ public class SubredditListFragment extends Fragment {
 
             @Override
             public void onLayoutClick(int position) {
-
+                Log.d(TAG, "clicked: " + position);
+                onLayoutCardSelected.OnCardItemSelected(position);
             }
         });
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Bundle bundle = getArguments();
+        if(bundle != null){
+            subListData = bundle.getParcelableArrayList("listData");
+        }
+        if(savedInstanceState != null){
+            recyclerViewState = savedInstanceState.getParcelable("scroll_state");
+        }
+    }
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(recyclerView != null && subListData != null) {
+            outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
+            recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
+            outState.putParcelable("scroll_state", recyclerViewState);
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         if(subListData != null) subListData.clear();
+    }
+
+    public interface OnLayoutCardSelected{
+        void OnCardItemSelected(int position);
+    }
+
+    public void setOnItemSelect(OnLayoutCardSelected onItemSelect){
+        onLayoutCardSelected = onItemSelect;
     }
 }

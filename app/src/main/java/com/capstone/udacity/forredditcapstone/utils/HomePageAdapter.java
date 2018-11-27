@@ -70,7 +70,6 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             return null;
         }
 
-        // TODO: localize
         final long diff = now - time;
         if (diff < MINUTE_MILLIS) {
             return "just now";
