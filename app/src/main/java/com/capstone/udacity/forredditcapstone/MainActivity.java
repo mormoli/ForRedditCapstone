@@ -11,12 +11,10 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -30,7 +28,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.PostData;
@@ -59,7 +56,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -67,7 +63,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ResponseReceiver.OnResponse{
     private static final String TAG = MainActivity.class.getSimpleName();
     private SharedPreferences sharedPreferences;
     @BindView(R.id.homepage_list_view)
@@ -82,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private Parcelable recyclerViewState;
     private int refreshCount = 0;
     private String searchString;
+    private ResponseReceiver mReceiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
             userAccessToken = sharedPreferences.getString("accessToken", null);
             userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
+
+        mReceiver = new ResponseReceiver(new Handler());
+        mReceiver.setReceiver(this);
 
         if (!isNetworkConnected()){ //while schedule job check's for connectivity for older api using this method
             showMessageOnError();
@@ -371,12 +371,26 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onHideButtonClick(View view, int position) {
-                //hide post and request to server
+                //hide post and request to server with intent service class
+                String fullName = childList.get(position).getFullName();
+                Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
+                intent.putExtra("receiver", mReceiver);
+                intent.putExtra("accessToken", userAccessToken);
+                intent.putExtra("name", fullName);
+                intent.setAction(Constants.API_HIDE);
+                startService(intent);
             }
 
             @Override
             public void onSaveButtonClick(View view, int position) {
-                //save post with room database also send request save to the reddit
+                //save post with room database also send request save to the reddit with intent service class
+                String fullName = childList.get(position).getFullName();
+                Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
+                intent.putExtra("receiver", mReceiver);
+                intent.putExtra("accessToken", userAccessToken);
+                intent.putExtra("name", fullName);
+                intent.setAction(Constants.API_SAVE);
+                startService(intent);
             }
 
             @Override
@@ -464,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
                 assert response.body() != null;
                 String json = response.body().string();
 
-                JSONObject data = null;
+                JSONObject data;
 
                 try {
                     data = new JSONObject(json);
@@ -558,5 +572,11 @@ public class MainActivity extends AppCompatActivity {
             outState.putParcelable("scroll_state", recyclerViewState);
             //outState.putInt("scrollPosition", lastVisiblePosition);
         }
+    }
+
+    @Override
+    public void onResponseReceived(int resultCode, Bundle resultData) {
+        Log.d(TAG, " resultCode: " + resultCode);
+        Log.d(TAG, " resultData: " + resultData.getString("data"));
     }
 }

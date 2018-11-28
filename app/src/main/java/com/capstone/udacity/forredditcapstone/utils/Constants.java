@@ -20,8 +20,10 @@ public class Constants {
     * SCOPE is most important thing here ! for instance if you are going to retrieve user subscribed subreddit list
     * you must have mysubreddits permission in the scope request. If not: even successful registration and usage of phone
     * you can't retrieve data from end point = /subreddits/mine/subscriber !!! request without permission will result
-    * of 403 error screen !*/
-    public static final String SCOPE = "read identity save subscribe mysubreddits edit";
+    * of 403 error screen !
+    * List of scopes and usages in JSON format : https://www.reddit.com/api/v1/scopes
+    * */
+    public static final String SCOPE = "read identity save subscribe mysubreddits edit history";
     public static final String APP_PREFS_NAME = "com.capstone.udacity.forredditcapstone.PREFS";
     //Reddit POST action methods
     public static final String API_HIDE = "com.capstone.udacity.forredditcapstone.HIDE";

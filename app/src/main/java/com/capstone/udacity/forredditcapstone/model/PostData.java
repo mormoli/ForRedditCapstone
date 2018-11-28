@@ -27,6 +27,8 @@ public class PostData implements Parcelable {
     private String subredditNamePrefixed;
     @SerializedName("author")
     private String author;
+    @SerializedName("name")
+    private String fullName;
     @SerializedName("created_utc")
     private int createdUTC;
     @SerializedName("title")
@@ -76,6 +78,14 @@ public class PostData implements Parcelable {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public int getCreatedUTC() {
@@ -155,6 +165,7 @@ public class PostData implements Parcelable {
         this.id = in.readString();
         this.subredditNamePrefixed = in.readString();
         this.author = in.readString();
+        this.fullName = in.readString();
         this.createdUTC = in.readInt();
         this.title = in.readString();
         this.selftext = in.readString();
@@ -177,6 +188,7 @@ public class PostData implements Parcelable {
         dest.writeString(this.id);
         dest.writeString(this.subredditNamePrefixed);
         dest.writeString(this.author);
+        dest.writeString(this.fullName);
         dest.writeInt(this.createdUTC);
         dest.writeString(this.title);
         dest.writeString(this.selftext);

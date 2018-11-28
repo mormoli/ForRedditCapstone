@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.subreddits.SubListData;
 import com.capstone.udacity.forredditcapstone.utils.SubListFragmentAdapter;
 
@@ -33,8 +34,12 @@ public class SubredditListFragment extends Fragment {
      */
     public SubredditListFragment(){}
 
-    public static SubredditListFragment newInstance(){
-        return new SubredditListFragment();
+    public static SubredditListFragment newInstance(List<SubListData> subListData){
+        SubredditListFragment subredditListFragment = new SubredditListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
+        subredditListFragment.setArguments(bundle);
+        return subredditListFragment;
     }
 
     @Override

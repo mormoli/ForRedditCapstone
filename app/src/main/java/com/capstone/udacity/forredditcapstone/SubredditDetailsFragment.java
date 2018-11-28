@@ -30,8 +30,12 @@ public class SubredditDetailsFragment extends Fragment {
      */
     public SubredditDetailsFragment(){}
 
-    public static SubredditDetailsFragment newInstance(){
-        return new SubredditDetailsFragment();
+    public static SubredditDetailsFragment newInstance(List<PostData> postData){
+        SubredditDetailsFragment fragment = new SubredditDetailsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("postData", (ArrayList<? extends Parcelable>) postData);
+        fragment.setArguments(bundle);
+        return fragment;
     }
 
     @Override
