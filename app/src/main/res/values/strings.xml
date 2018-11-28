@@ -35,4 +35,6 @@
     <string name="subscribe_button">subscribe</string>
     <string name="unsubscribe_button">unsubscribe</string>
     <string name="title_activity_search_list">SearchListActivity</string>
+    <string name="unauthorized_access_error">Something went wrong please try again in a moment.</string>
+    <string name="unknown_access_error">Please try again later, if problem persist warn the developer.</string>
 </resources>

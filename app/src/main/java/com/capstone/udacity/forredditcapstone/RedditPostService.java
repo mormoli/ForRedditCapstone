@@ -140,6 +140,9 @@ public class RedditPostService extends IntentService {
             public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 Log.d(TAG, " server response: " + response.toString());
                 Log.d(TAG, " response code: " + response.code());
+                Bundle bundle = new Bundle();
+                bundle.putString("data", response.toString());
+                mReceiver.send(response.code(), bundle);
             }
 
             @Override

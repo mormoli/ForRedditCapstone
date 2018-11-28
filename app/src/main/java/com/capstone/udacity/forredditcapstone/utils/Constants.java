@@ -3,7 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import java.util.UUID;
 
 public class Constants {
-    public static final String CLIENT_ID = "YOUR CLIENT ID";
+    public static final String CLIENT_ID = "Your Client ID";
     public static final String USER_AGENT = "User-Agent: android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)";
     public static final String OAUTH_URL = "https://www.reddit.com/api/v1/authorize.compact";
     public static final String ACCESS_TOKEN_URL = "https://www.reddit.com/api/v1/access_token";
@@ -23,7 +23,7 @@ public class Constants {
     * of 403 error screen !
     * List of scopes and usages in JSON format : https://www.reddit.com/api/v1/scopes
     * */
-    public static final String SCOPE = "read identity save subscribe mysubreddits edit history";
+    public static final String SCOPE = "read identity save subscribe mysubreddits edit history report";
     public static final String APP_PREFS_NAME = "com.capstone.udacity.forredditcapstone.PREFS";
     //Reddit POST action methods
     public static final String API_HIDE = "com.capstone.udacity.forredditcapstone.HIDE";

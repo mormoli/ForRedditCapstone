@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     private int refreshCount = 0;
     private String searchString;
     private ResponseReceiver mReceiver;
+    private int position;
+    private String action;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -353,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     populateUI(childList);
                 } else { //probably error code is 401 --> try refresh the token then call method again
                     Log.d(TAG, " response code: " + response.code());
-                    if(refreshCount < 2) getAccessToken();
+                    if(refreshCount < 2) getAccessToken("homepage");
                     else Toast.makeText(getApplicationContext(), getString(R.string.token_refresh_error), Toast.LENGTH_LONG).show();
                 }
             }
@@ -379,6 +381,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 intent.putExtra("name", fullName);
                 intent.setAction(Constants.API_HIDE);
                 startService(intent);
+                action = "hided";
+                position = position;
             }
 
             @Override
@@ -391,6 +395,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 intent.putExtra("name", fullName);
                 intent.setAction(Constants.API_SAVE);
                 startService(intent);
+                action = "saved";
+                position = position;
             }
 
             @Override
@@ -451,7 +457,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     * Method that refresh's the given token
     * If you request permanent access, then you will need to refresh the tokens after 1 hour.
     * */
-    private void getAccessToken(){
+    private void getAccessToken(final String callerMethod){
         refreshCount++;
         OkHttpClient client = new OkHttpClient();
         Log.d(TAG, "getAccessToken called.");
@@ -489,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     editor.putString("accessToken", userAccessToken);
                     //editor.putString("refreshToken", userRefreshToken);
                     editor.apply();
-                    getHomePage(userAccessToken);
+                    if(callerMethod.equals("homepage"))getHomePage(userAccessToken);
                     Log.d(TAG, "Access token: " + userAccessToken);
                     Log.d(TAG, "Refresh token: " + userRefreshToken);
                 } catch (JSONException e) {
@@ -573,10 +579,30 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             //outState.putInt("scrollPosition", lastVisiblePosition);
         }
     }
-
+    /*
+    * Method that retrieves server response code and take actions about em.
+    * */
     @Override
     public void onResponseReceived(int resultCode, Bundle resultData) {
         Log.d(TAG, " resultCode: " + resultCode);
         Log.d(TAG, " resultData: " + resultData.getString("data"));
+        if(resultCode == 200){
+            Toast.makeText(this, "POST "+ action + " successfully.", Toast.LENGTH_SHORT).show();
+            if(action.equals("saved")){
+                //save action: save post to database
+            } else {
+                //hide action: remove item and notify data changed.
+                childList.remove(position);
+                homePageAdapter.notifyItemRemoved(position);
+                homePageAdapter.notifyItemRangeChanged(position, childList.size());
+            }
+        } else if(resultCode == 401){
+            //try to refresh token.
+            Toast.makeText(this,getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+            getAccessToken("refresh");
+        } else {
+            //403 or something else happened, warn user.
+            Toast.makeText(this,getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.capstone.udacity.forredditcapstone;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -51,13 +52,14 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DetailsActivity extends AppCompatActivity {
+public class DetailsActivity extends AppCompatActivity implements ResponseReceiver.OnResponse{
     private static final String TAG = DetailsActivity.class.getSimpleName();
     private String userAccessToken, userRefreshToken, subredditName, postId;
     private String customizedComments, customizedPoints;
     private SharedPreferences sharedPreferences;
     private Parcelable recyclerViewState;
     private PostData postData;
+    private ResponseReceiver mReceiver;
     //view elements
     @BindView(R.id.details_list_view)
     RecyclerView recyclerView;
@@ -178,7 +180,7 @@ public class DetailsActivity extends AppCompatActivity {
                     }
                 } else {
                     Log.d(TAG, " response code: " + response.code());
-                    if(refreshCount < 2) getAccessToken();
+                    if(refreshCount < 2) getAccessToken("comments");
                     else Toast.makeText(getApplicationContext(), getString(R.string.token_refresh_error), Toast.LENGTH_LONG).show();
                 }
 
@@ -198,6 +200,13 @@ public class DetailsActivity extends AppCompatActivity {
             @Override
             public void onSaveButtonClicked(View view, int position) {
                 //save comment to favorite database also send post to server in order to save user saved data.
+                String fullName = commentList.get(position).getFullName();
+                Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
+                intent.putExtra("receiver", mReceiver);
+                intent.putExtra("accessToken", userAccessToken);
+                intent.putExtra("name", fullName);
+                intent.setAction(Constants.API_SAVE);
+                startService(intent);
             }
 
             @Override
@@ -216,7 +225,7 @@ public class DetailsActivity extends AppCompatActivity {
      * Method that refresh's the given token
      * If you request permanent access, then you will need to refresh the tokens after 1 hour.
      * */
-    private void getAccessToken(){
+    private void getAccessToken(final String callerMethod){
         refreshCount++;
         OkHttpClient client = new OkHttpClient();
         Log.d(TAG, "getAccessToken called.");
@@ -254,7 +263,7 @@ public class DetailsActivity extends AppCompatActivity {
                     editor.putString("accessToken", userAccessToken);
                     //editor.putString("refreshToken", userRefreshToken);
                     editor.apply();
-                    getPostComments();
+                    if(callerMethod.equals("comments"))getPostComments();
                     Log.d(TAG, "Access token: " + userAccessToken);
                     Log.d(TAG, "Refresh token: " + userRefreshToken);
                 } catch (JSONException e) {
@@ -309,6 +318,21 @@ public class DetailsActivity extends AppCompatActivity {
             outState.putString("comments", customizedComments);
             recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
             outState.putParcelable("scroll_state", recyclerViewState);
+        }
+    }
+
+    @Override
+    public void onResponseReceived(int resultCode, Bundle resultData) {
+        if(resultCode == 200){
+            //save comment to database and show message to the user.
+            Toast.makeText(this, "Comment saved successfully.", Toast.LENGTH_SHORT).show();
+        } else if(resultCode == 401){
+            //try to refresh token.
+            Toast.makeText(this,getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+            getAccessToken("refresh");
+        } else {
+            //403 or something else happened, warn user.
+            Toast.makeText(this,getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
         }
     }
 }

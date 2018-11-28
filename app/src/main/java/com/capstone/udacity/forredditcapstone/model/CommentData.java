@@ -25,6 +25,8 @@ public class CommentData implements Parcelable {
     private String body;
     @SerializedName("created_utc")
     private int createdUTC;
+    @SerializedName("name")
+    private String fullName;
     //@SerializedName("replies")
     //private List<Replies> replies;
 
@@ -62,6 +64,14 @@ public class CommentData implements Parcelable {
         this.createdUTC = createdUTC;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     /*public List<Replies> getReplies() {
         return replies;
     }
@@ -80,6 +90,7 @@ public class CommentData implements Parcelable {
         this.score = in.readInt();
         this.body = in.readString();
         this.createdUTC = in.readInt();
+        this.fullName = in.readString();
     }
 
     @Override
@@ -88,5 +99,6 @@ public class CommentData implements Parcelable {
         dest.writeInt(this.score);
         dest.writeString(this.body);
         dest.writeInt(this.createdUTC);
+        dest.writeString(this.fullName);
     }
 }
