@@ -3,7 +3,6 @@ package com.capstone.udacity.forredditcapstone;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
@@ -52,6 +51,8 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     private List<SearchData> searchData;
     private ResponseReceiver mReceiver;
     private String actionText;
+    private int position;
+    private SearchFragmentAdapter searchFragmentAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +71,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
 
         if(getIntent() != null && getIntent().hasExtra("searchData")){
             searchData = getIntent().getParcelableArrayListExtra("searchData");
-            SearchFragmentAdapter searchFragmentAdapter = new SearchFragmentAdapter(searchData);
+            searchFragmentAdapter = new SearchFragmentAdapter(searchData);
             searchFragmentAdapter.setOnClick(new SearchFragmentAdapter.OnItemClicked() {
                 @Override
                 public void onItemClick(View view, int position) {
@@ -87,8 +88,18 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         intent.putExtra("srName", searchData.get(position).getFullName());
                         intent.setAction(Constants.API_SUBSCRIBE);
                         startService(intent);
+                        position = position;
                     } else {
+                        String action = "unsub";
                         actionText = "Unsubscribed";
+                        Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
+                        intent.putExtra("receiver", mReceiver);
+                        intent.putExtra("accessToken", userAccessToken);
+                        intent.putExtra("action", action);
+                        intent.putExtra("srName", searchData.get(position).getFullName());
+                        intent.setAction(Constants.API_SUBSCRIBE);
+                        startService(intent);
+                        position = position;
                     }
                 }
             });
@@ -190,6 +201,13 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     public void onResponseReceived(int resultCode, Bundle resultData) {
         if(resultCode == 200){
             Toast.makeText(this, actionText + " successfully.", Toast.LENGTH_SHORT).show();
+            if(actionText.equals("Subscribed")) {
+                searchData.get(position).setUserIsSubscriber(true);
+                searchFragmentAdapter.notifyDataSetChanged();
+            }else{
+                searchData.get(position).setUserIsSubscriber(false);
+                searchFragmentAdapter.notifyDataSetChanged();
+            }
         } else if(resultCode == 401){
             //try to refresh token.
             Toast.makeText(this,getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();

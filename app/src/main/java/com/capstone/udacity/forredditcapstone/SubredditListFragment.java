@@ -1,5 +1,7 @@
 package com.capstone.udacity.forredditcapstone;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -8,26 +10,44 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.subreddits.SubListData;
+import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.SubListFragmentAdapter;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubredditListFragment extends Fragment {
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+
+import static android.content.Context.MODE_PRIVATE;
+
+public class SubredditListFragment extends Fragment implements ResponseReceiver.OnResponse{
     private static final String TAG = SubredditListFragment.class.getSimpleName();
     private RecyclerView recyclerView;
     private List<SubListData> subListData = new ArrayList<>();
     private SubListFragmentAdapter subListFragmentAdapter;
     private OnLayoutCardSelected onLayoutCardSelected;
     private Parcelable recyclerViewState;
+    private ResponseReceiver mReceiver;
+    private String userAccessToken, userRefreshToken;
+    private String mActionText;
+    private SharedPreferences sharedPreferences;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -48,6 +68,11 @@ public class SubredditListFragment extends Fragment {
         setRetainInstance(true);
         if (getArguments() != null){
             subListData = getArguments().getParcelableArrayList("listData");
+        }
+        if(getActivity() != null) {
+            sharedPreferences = getActivity().getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
+            userAccessToken = sharedPreferences.getString("accessToken", null);
+            userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
         //setHasOptionsMenu(true);
     }
@@ -76,6 +101,28 @@ public class SubredditListFragment extends Fragment {
                 Log.d(TAG, " button clicked: " + ((Button) view).getText().toString());
                 Log.d(TAG, " subreddit name : " + subListData.get(position).getDisplayNamePrefixed());
                 Log.d(TAG, " fullname : " + subListData.get(position).getFullname());
+                String name = ((Button) view).getText().toString();
+                if(name.equals("subscribe")){
+                    String action = "sub";
+                    mActionText = "Subscribed";
+                    Intent intent = new Intent(getActivity(), RedditPostService.class);
+                    intent.putExtra("receiver", mReceiver);
+                    intent.putExtra("accessToken", userAccessToken);
+                    intent.putExtra("action", action);
+                    intent.putExtra("srName", subListData.get(position).getFullname());
+                    intent.setAction(Constants.API_SUBSCRIBE);
+                    if(getActivity() != null) getActivity().startService(intent);
+                } else {
+                    String action = "unsub";
+                    mActionText = "Unsubscribed";
+                    Intent intent = new Intent(getActivity(), RedditPostService.class);
+                    intent.putExtra("receiver", mReceiver);
+                    intent.putExtra("accessToken", userAccessToken);
+                    intent.putExtra("action", action);
+                    intent.putExtra("srName", subListData.get(position).getFullname());
+                    intent.setAction(Constants.API_SUBSCRIBE);
+                    if(getActivity() != null) getActivity().startService(intent);
+                }
             }
 
             @Override
@@ -108,10 +155,74 @@ public class SubredditListFragment extends Fragment {
         }
     }
 
+    /*
+     * Method that refresh's the given token
+     * If you request permanent access, then you will need to refresh the tokens after 1 hour.
+     * */
+    private void getAccessToken(){
+        OkHttpClient client = new OkHttpClient();
+        Log.d(TAG, "getAccessToken called.");
+        String authString = Constants.CLIENT_ID + ":";
+        String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
+
+        Request request = new Request.Builder()
+                .addHeader("User-Agent", "android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)")
+                .addHeader("Authorization", "Basic " + encodedAuthString)
+                .url(Constants.ACCESS_TOKEN_URL)
+                .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"),
+                        "grant_type=refresh_token&refresh_token=" + userRefreshToken +
+                                "&redirect_uri=" + Constants.REDIRECT_URI))
+                .build();
+
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                Log.e(TAG, " getAccessToken error: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                assert response.body() != null;
+                String json = response.body().string();
+
+                JSONObject data = null;
+
+                try {
+                    data = new JSONObject(json);
+                    //get new access token
+                    userAccessToken = data.optString("access_token");
+                    //replace value in shared preferences
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("accessToken", userAccessToken);
+                    //editor.putString("refreshToken", userRefreshToken);
+                    editor.apply();
+                    Log.d(TAG, "Access token: " + userAccessToken);
+                    Log.d(TAG, "Refresh token: " + userRefreshToken);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     @Override
     public void onDetach() {
         super.onDetach();
         if(subListData != null) subListData.clear();
+    }
+
+    @Override
+    public void onResponseReceived(int resultCode, Bundle resultData) {
+        if(resultCode == 200){
+            Toast.makeText(getActivity(), mActionText + " successfully.", Toast.LENGTH_SHORT).show();
+        }else if(resultCode == 401){
+            //try to refresh token.
+            Toast.makeText(getActivity(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+            getAccessToken();
+        } else {
+            //403 or something else happened, warn user.
+            Toast.makeText(getActivity(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
+        }
     }
 
     public interface OnLayoutCardSelected{

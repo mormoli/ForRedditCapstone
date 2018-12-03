@@ -3,7 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import java.util.UUID;
 
 public class Constants {
-    public static final String CLIENT_ID = "Your Client ID";
+    public static final String CLIENT_ID = "Client ID";
     public static final String USER_AGENT = "User-Agent: android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)";
     public static final String OAUTH_URL = "https://www.reddit.com/api/v1/authorize.compact";
     public static final String ACCESS_TOKEN_URL = "https://www.reddit.com/api/v1/access_token";
@@ -29,4 +29,7 @@ public class Constants {
     public static final String API_HIDE = "com.capstone.udacity.forredditcapstone.HIDE";
     public static final String API_SAVE = "com.capstone.udacity.forredditcapstone.SAVE";
     public static final String API_SUBSCRIBE = "com.capstone.udacity.forredditcapstone.SUBSCRIBE";
+    //Database constants
+    public static final String COMMENT_DATABASE_NAME = "comment_table";
+    public static final String POST_DATABASE_NAME = "post_table";
 }

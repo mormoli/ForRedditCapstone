@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import android.support.annotation.NonNull;
 import android.support.design.card.MaterialCardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.capstone.udacity.forredditcapstone.R;
+import com.capstone.udacity.forredditcapstone.database.Post;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.squareup.picasso.Picasso;
 
@@ -23,6 +25,7 @@ import butterknife.ButterKnife;
 
 public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePageHolder> {
     private List<PostData> childList;
+    private List<Post> posts;
     private ButtonsListener buttonsListener;
     private static final int SECOND_MILLIS = 1000;
     private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
@@ -31,6 +34,10 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
     public HomePageAdapter(List<PostData> childList, ButtonsListener buttonsListener){
         this.childList = childList;
         this.buttonsListener = buttonsListener;
+    }
+
+    public HomePageAdapter(List<Post> posts, ButtonsListener buttonsListener, boolean isDatabase){
+
     }
 
     public class HomePageHolder extends RecyclerView.ViewHolder{
@@ -57,6 +64,10 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             //setIsRecyclable(false);
             ButterKnife.bind(this, view);
         }
+
+        /*public void insertPostsIntoDB(Post post){
+            RedditDatabase.getDatabase(itemView.getContext()).redditDAO().insert(post);
+        }*/
     }
     //@see 'https://stackoverflow.com/questions/13018550/time-since-ago-library-for-android-java'
     public static String getTimeAgo(long time){
@@ -97,35 +108,52 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     @Override
     public void onBindViewHolder(@NonNull final HomePageHolder holder, int position) {
-        //PostData data = childList.get(position).getData();
-        //Header of the card
-        String header = childList.get(position).getSubredditNamePrefixed() + " . posted bu u/"+ childList.get(position).getAuthor() +" "+ getTimeAgo(childList.get(position).getCreatedUTC());
-        holder.headerText.setText(header);
+        final String ups, comments;
+        if(posts == null) {
+            //Header of the card
+            String header = childList.get(position).getSubredditNamePrefixed() + " . posted bu u/" + childList.get(position).getAuthor() + " " + getTimeAgo(childList.get(position).getCreatedUTC());
+            holder.headerText.setText(header);
 
-        if(!TextUtils.isEmpty(childList.get(position).getThumbnail())){
-            Picasso.get()
-                    .load(childList.get(position).getThumbnail())
-                    .resizeDimen(R.dimen.thumb_image_width, R.dimen.thumb_image_height)
-                    //.resize(width, height)
-                    //.onlyScaleDown() //// the image will only be resized if it's bigger than widthxheight pixels.
-                    .into(holder.postImage);
-        } else {
-            holder.postImage.setVisibility(View.GONE);
+            if (!TextUtils.isEmpty(childList.get(position).getThumbnail())) {
+                Picasso.get()
+                        .load(childList.get(position).getThumbnail())
+                        .resizeDimen(R.dimen.thumb_image_width, R.dimen.thumb_image_height)
+                        .into(holder.postImage);
+            } else {
+                holder.postImage.setVisibility(View.GONE);
+            }
+            //post title
+            if (!TextUtils.isEmpty(childList.get(position).getTitle())) {
+                holder.postTitle.setText(Html.fromHtml(childList.get(position).getTitle()));
+            } else holder.postTitle.setVisibility(View.GONE);
+            //Footer items
+            //format numbers for ups and comments
+            //@see 'https://stackoverflow.com/questions/4753251/how-to-go-about-formatting-1200-to-1-2k-in-java'
+            ups = numberFormat(childList.get(position).getUps()) + " points";
+            holder.points.setText(ups);
+            comments = numberFormat(childList.get(position).getNumComments()) + " comments";
+            holder.comments.setText(comments);
+            //String createdUTC = getTimeAgo(childList.get(position).getCreatedUTC());
+            //String fullname, String header, String thumbnail, String author, String title,
+            // String selftext, String permalink, String ups, String comments, String createdUTC
+            /*holder.insertPostsIntoDB(new Post(childList.get(position).getFullName(), header, childList.get(position).getThumbnail(),
+                    childList.get(position).getAuthor(), childList.get(position).getTitle(), childList.get(position).getSelftext(),
+                    childList.get(position).getPermalink(), ups, comments, createdUTC));*/
+        } else { //populate ui from database
+            holder.headerText.setText(posts.get(position).getHeader());
+            if(!TextUtils.isEmpty(posts.get(position).getThumbnail())){
+                Picasso.get()
+                        .load(posts.get(position).getThumbnail())
+                        .resizeDimen(R.dimen.thumb_image_width, R.dimen.thumb_image_height)
+                        .into(holder.postImage);
+            } else holder.postImage.setVisibility(View.GONE);
+            if(!TextUtils.isEmpty(posts.get(position).getTitle())) holder.postTitle.setText(Html.fromHtml(posts.get(position).getTitle()));
+            else holder.postTitle.setVisibility(View.GONE);
+            holder.points.setText(posts.get(position).getUps());
+            ups = posts.get(position).getUps();
+            holder.comments.setText(posts.get(position).getComments());
+            comments = posts.get(position).getComments();
         }
-        //post title
-        if(!TextUtils.isEmpty(childList.get(position).getTitle())){
-            holder.postTitle.setText(childList.get(position).getTitle());
-        } else holder.postTitle.setVisibility(View.GONE);
-        //set sub text if exist or visibility gone
-        //if(!TextUtils.isEmpty(data.getSelftext())) holder.postSubtitle.setText(data.getSelftext());
-        //else holder.postSubtitle.setVisibility(View.GONE);
-        //Footer items
-        //format numbers for ups and comments
-        //@see 'https://stackoverflow.com/questions/4753251/how-to-go-about-formatting-1200-to-1-2k-in-java'
-        final String ups = numberFormat(childList.get(position).getUps()) + " points";
-        holder.points.setText(ups);
-        final String comments = numberFormat(childList.get(position).getNumComments()) + " comments";
-        holder.comments.setText(comments);
         //BUTTONS setting click listeners
         holder.hideButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -161,6 +189,11 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         });
     }
 
+    public void setPosts(List<Post> posts) {
+        this.posts = posts;
+        notifyDataSetChanged();
+    }
+
     public String numberFormat(int number){
         String strNumber;
         if(Math.abs(number / 1000000) > 1) strNumber = (number / 1000000) + "m";
@@ -171,7 +204,8 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     @Override
     public int getItemCount() {
-        return childList.size();
+        if(posts != null && posts.size() > 0) return posts.size();
+        else return childList.size();
     }
 
     public interface ButtonsListener{

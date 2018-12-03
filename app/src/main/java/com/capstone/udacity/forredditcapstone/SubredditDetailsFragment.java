@@ -1,6 +1,7 @@
 package com.capstone.udacity.forredditcapstone;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -9,21 +10,42 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.PostData;
+import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.SubredditDetailsAdapter;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SubredditDetailsFragment extends Fragment {
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+
+import static android.content.Context.MODE_PRIVATE;
+
+public class SubredditDetailsFragment extends Fragment implements ResponseReceiver.OnResponse{
     private static final String TAG = SubredditDetailsFragment.class.getSimpleName();
     private RecyclerView recyclerView;
     private List<PostData> postData;
     private Parcelable recyclerViewState;
+    private ResponseReceiver mReceiver;
+    private String userAccessToken, userRefreshToken;
+    private String mActionText;
+    private SharedPreferences sharedPreferences;
+    private int mPosition;
+    private SubredditDetailsAdapter subredditDetailsAdapter;
     /*
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -45,6 +67,11 @@ public class SubredditDetailsFragment extends Fragment {
         if (getArguments() != null){
             postData = getArguments().getParcelableArrayList("postData");
         }
+        if(getActivity() != null) {
+            sharedPreferences = getActivity().getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
+            userAccessToken = sharedPreferences.getString("accessToken", null);
+            userRefreshToken = sharedPreferences.getString("refreshToken", null);
+        }
         //setHasOptionsMenu(true);
     }
 
@@ -60,15 +87,31 @@ public class SubredditDetailsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SubredditDetailsAdapter subredditDetailsAdapter = new SubredditDetailsAdapter(postData, new SubredditDetailsAdapter.ButtonsListener() {
+        subredditDetailsAdapter = new SubredditDetailsAdapter(postData, new SubredditDetailsAdapter.ButtonsListener() {
             @Override
             public void onHideButtonClick(View view, int position) {
-
+                String fullName = postData.get(position).getFullName();
+                Intent intent = new Intent(getActivity(), RedditPostService.class);
+                intent.putExtra("receiver", mReceiver);
+                intent.putExtra("accessToken", userAccessToken);
+                intent.putExtra("name", fullName);
+                intent.setAction(Constants.API_HIDE);
+                if(getActivity() != null) getActivity().startService(intent);
+                mActionText = "hided";
+                mPosition = position;
             }
 
             @Override
             public void onSaveButtonClick(View view, int position) {
-
+                String fullName = postData.get(position).getFullName();
+                Intent intent = new Intent(getActivity(), RedditPostService.class);
+                intent.putExtra("receiver", mReceiver);
+                intent.putExtra("accessToken", userAccessToken);
+                intent.putExtra("name", fullName);
+                intent.setAction(Constants.API_SAVE);
+                if(getActivity() != null) getActivity().startService(intent);
+                mActionText = "saved";
+                mPosition = position;
             }
 
             @Override
@@ -92,6 +135,56 @@ public class SubredditDetailsFragment extends Fragment {
         }
     }
 
+    /*
+     * Method that refresh's the given token
+     * If you request permanent access, then you will need to refresh the tokens after 1 hour.
+     * */
+    private void getAccessToken(){
+        OkHttpClient client = new OkHttpClient();
+        Log.d(TAG, "getAccessToken called.");
+        String authString = Constants.CLIENT_ID + ":";
+        String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
+
+        Request request = new Request.Builder()
+                .addHeader("User-Agent", "android:com.capstone.udacity.forredditcapstone:v1.0 (by /u/mormoli)")
+                .addHeader("Authorization", "Basic " + encodedAuthString)
+                .url(Constants.ACCESS_TOKEN_URL)
+                .post(RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"),
+                        "grant_type=refresh_token&refresh_token=" + userRefreshToken +
+                                "&redirect_uri=" + Constants.REDIRECT_URI))
+                .build();
+
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                Log.e(TAG, " getAccessToken error: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                assert response.body() != null;
+                String json = response.body().string();
+
+                JSONObject data = null;
+
+                try {
+                    data = new JSONObject(json);
+                    //get new access token
+                    userAccessToken = data.optString("access_token");
+                    //replace value in shared preferences
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("accessToken", userAccessToken);
+                    //editor.putString("refreshToken", userRefreshToken);
+                    editor.apply();
+                    Log.d(TAG, "Access token: " + userAccessToken);
+                    Log.d(TAG, "Refresh token: " + userRefreshToken);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -102,5 +195,27 @@ public class SubredditDetailsFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         if(postData != null) postData.clear();
+    }
+
+    @Override
+    public void onResponseReceived(int resultCode, Bundle resultData) {
+        if(resultCode == 200){
+            Toast.makeText(getActivity(), mActionText + " successfully.", Toast.LENGTH_SHORT).show();
+            if(mActionText.equals("saved")){
+                //save action: save post to database
+            } else {
+                //hide action: remove item and notify data changed.
+                postData.remove(mPosition);
+                subredditDetailsAdapter.notifyItemRemoved(mPosition);
+                subredditDetailsAdapter.notifyItemRangeChanged(mPosition, postData.size());
+            }
+        }else if(resultCode == 401){
+            //try to refresh token.
+            Toast.makeText(getActivity(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+            getAccessToken();
+        } else {
+            //403 or something else happened, warn user.
+            Toast.makeText(getActivity(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
+        }
     }
 }

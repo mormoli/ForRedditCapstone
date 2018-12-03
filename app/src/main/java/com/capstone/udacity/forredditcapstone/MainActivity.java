@@ -3,6 +3,9 @@ package com.capstone.udacity.forredditcapstone;
 import android.app.SearchManager;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +17,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,6 +34,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.capstone.udacity.forredditcapstone.database.DataViewModel;
+import com.capstone.udacity.forredditcapstone.database.Post;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
@@ -71,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     //@BindView(R.id.search_list_fragment)
     //Fragment searchFrameLayout;
     HomePageAdapter homePageAdapter;
-    private ArrayList<PostData> childList;
+    private List<PostData> childList;
     private List<SearchData> searchData;
     private SearchView searchView;
     private String userAccessToken, userRefreshToken;
@@ -79,8 +85,10 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     private int refreshCount = 0;
     private String searchString;
     private ResponseReceiver mReceiver;
-    private int position;
+    private int mPosition;
     private String action;
+    private DataViewModel mDataViewModel;
+    private String fullName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,9 +103,18 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             userAccessToken = sharedPreferences.getString("accessToken", null);
             userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
-
+        //setting receiver object for intent service class
         mReceiver = new ResponseReceiver(new Handler());
         mReceiver.setReceiver(this);
+
+        //view model object for database operations e.g Live data observe.
+        mDataViewModel = ViewModelProviders.of(this).get(DataViewModel.class);
+        mDataViewModel.getAllPosts().observe(this, new Observer<List<Post>>() {
+            @Override
+            public void onChanged(@Nullable List<Post> posts) {
+                homePageAdapter.setPosts(posts);
+            }
+        });
 
         if (!isNetworkConnected()){ //while schedule job check's for connectivity for older api using this method
             showMessageOnError();
@@ -188,9 +205,6 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             case R.id.settings_logout:
                 //revoke token
                 return true;
-            case R.id.settings_search:
-                //get search credentials and open view or show toast message if not exists.
-                return true;
             default:
 
         }
@@ -213,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     Log.d(TAG, " Search String: " + searchString);
                     getSearchResults();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Search text must be minimum of 3 characters.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.search_text_error), Toast.LENGTH_LONG).show();
                 }
                 return false;
             }
@@ -283,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     * */
     public void getSearchResults(){
         searchView.setQuery("", false); //clear the text
-        searchView.setIconified(true);//close the search view
+        //searchView.setIconified(true);//close the search view
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -374,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             @Override
             public void onHideButtonClick(View view, int position) {
                 //hide post and request to server with intent service class
-                String fullName = childList.get(position).getFullName();
+                fullName = childList.get(position).getFullName();
                 Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
                 intent.putExtra("receiver", mReceiver);
                 intent.putExtra("accessToken", userAccessToken);
@@ -382,13 +396,13 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 intent.setAction(Constants.API_HIDE);
                 startService(intent);
                 action = "hided";
-                position = position;
+                mPosition = position;
             }
 
             @Override
             public void onSaveButtonClick(View view, int position) {
                 //save post with room database also send request save to the reddit with intent service class
-                String fullName = childList.get(position).getFullName();
+                fullName = childList.get(position).getFullName();
                 Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
                 intent.putExtra("receiver", mReceiver);
                 intent.putExtra("accessToken", userAccessToken);
@@ -396,7 +410,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 intent.setAction(Constants.API_SAVE);
                 startService(intent);
                 action = "saved";
-                position = position;
+                mPosition = position;
             }
 
             @Override
@@ -419,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         recyclerView.setAdapter(homePageAdapter);
     }
     /*
-    * Method that retrieves logged user info like name - id etc.
+    * Method that retrieves logged user info like username - id etc.
     * adding username to the shared preferences for future call about hide/save/subscribe options
     * */
     private void getUserInfo(){
@@ -567,10 +581,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //save the response for the homepage
-        //saving list requires casting --> (ArrayList<? extends Parcelable>)
-        //instead of casting, changed list attribute childList element to ArrayList<>
-        outState.putParcelableArrayList("homepage", childList);
+        outState.putParcelableArrayList("homepage", (ArrayList<? extends Parcelable>) childList);
         //saving scrolling position of recycler view
         if(recyclerView != null && childList != null){
             //int lastVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
@@ -592,9 +603,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 //save action: save post to database
             } else {
                 //hide action: remove item and notify data changed.
-                childList.remove(position);
-                homePageAdapter.notifyItemRemoved(position);
-                homePageAdapter.notifyItemRangeChanged(position, childList.size());
+                childList.remove(mPosition);
+                homePageAdapter.notifyItemRemoved(mPosition);
+                homePageAdapter.notifyItemRangeChanged(mPosition, childList.size());
             }
         } else if(resultCode == 401){
             //try to refresh token.

@@ -37,4 +37,5 @@
     <string name="title_activity_search_list">SearchListActivity</string>
     <string name="unauthorized_access_error">Something went wrong please try again in a moment.</string>
     <string name="unknown_access_error">Please try again later, if problem persist warn the developer.</string>
+    <string name="search_text_error">Search text must be minimum of 3 characters.</string>
 </resources>
