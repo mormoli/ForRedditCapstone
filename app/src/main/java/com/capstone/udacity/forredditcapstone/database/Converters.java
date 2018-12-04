@@ -10,15 +10,14 @@ public class Converters {
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
 
-    @TypeConverter
-    public Post fromRetrofitPojoToRoom(PostData postData){
+    public static Post fromRetrofitPojoToRoom(PostData postData){
         String createdUTC = getTimeAgo(postData.getCreatedUTC());
         String ups = numberFormat(postData.getUps()) + " points";
         String comments = numberFormat(postData.getNumComments()) + " comments";
         String header = postData.getSubredditNamePrefixed() + " . posted bu u/" + postData.getAuthor() + " " + createdUTC;
 
         return new Post(postData.getFullName(), header, postData.getThumbnail(), postData.getAuthor(),
-                postData.getTitle(), postData.getSelftext(), postData.getPermalink(), ups, comments, createdUTC);
+                postData.getTitle(), postData.getSelftext(), postData.getPermalink(), ups, comments, createdUTC, postData.getImageDetailURL());
     }
 
     public static String getTimeAgo(long time){
@@ -50,7 +49,7 @@ public class Converters {
         }
     }
 
-    public String numberFormat(int number){
+    public static String numberFormat(int number){
         String strNumber;
         if(Math.abs(number / 1000000) > 1) strNumber = (number / 1000000) + "m";
         else if(Math.abs(number / 1000) > 1) strNumber = (number / 1000) + "k";

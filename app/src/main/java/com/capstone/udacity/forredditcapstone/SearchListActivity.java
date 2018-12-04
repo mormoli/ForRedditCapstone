@@ -51,7 +51,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     private List<SearchData> searchData;
     private ResponseReceiver mReceiver;
     private String actionText;
-    private int position;
+    private int mPosition;
     private SearchFragmentAdapter searchFragmentAdapter;
 
     @Override
@@ -88,7 +88,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         intent.putExtra("srName", searchData.get(position).getFullName());
                         intent.setAction(Constants.API_SUBSCRIBE);
                         startService(intent);
-                        position = position;
+                        mPosition = position;
                     } else {
                         String action = "unsub";
                         actionText = "Unsubscribed";
@@ -99,7 +99,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         intent.putExtra("srName", searchData.get(position).getFullName());
                         intent.setAction(Constants.API_SUBSCRIBE);
                         startService(intent);
-                        position = position;
+                        mPosition = position;
                     }
                 }
             });
@@ -202,11 +202,13 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
         if(resultCode == 200){
             Toast.makeText(this, actionText + " successfully.", Toast.LENGTH_SHORT).show();
             if(actionText.equals("Subscribed")) {
-                searchData.get(position).setUserIsSubscriber(true);
-                searchFragmentAdapter.notifyDataSetChanged();
+                searchData.get(mPosition).setUserIsSubscriber(true);
+                //searchFragmentAdapter.notifyDataSetChanged();
+                searchFragmentAdapter.notifyItemChanged(mPosition);
             }else{
-                searchData.get(position).setUserIsSubscriber(false);
-                searchFragmentAdapter.notifyDataSetChanged();
+                searchData.get(mPosition).setUserIsSubscriber(false);
+                //searchFragmentAdapter.notifyDataSetChanged();
+                searchFragmentAdapter.notifyItemChanged(mPosition);
             }
         } else if(resultCode == 401){
             //try to refresh token.

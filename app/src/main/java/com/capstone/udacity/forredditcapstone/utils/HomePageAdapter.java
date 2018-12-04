@@ -174,15 +174,28 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             public void onClick(View v) {
                 PostData postData = new PostData();
                 postData.setSubredditNamePrefixed(holder.headerText.getText().toString());
-                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getThumbnail()))
-                    postData.setThumbnail(childList.get(holder.getAdapterPosition()).getThumbnail());
-                postData.setTitle(childList.get(holder.getAdapterPosition()).getTitle());
-                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getSelftext()))
-                    postData.setSelftext(childList.get(holder.getAdapterPosition()).getSelftext());
-                if(!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getImageDetailURL())) {
-                    String ext = MimeTypeMap.getFileExtensionFromUrl(childList.get(holder.getAdapterPosition()).getImageDetailURL());
-                    if(!TextUtils.isEmpty(ext) && (ext.equals("jpg") || ext.equals("png")))
-                        postData.setImageDetailURL(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                if(childList != null) {
+                    if (!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getThumbnail()))
+                        postData.setThumbnail(childList.get(holder.getAdapterPosition()).getThumbnail());
+                    postData.setTitle(childList.get(holder.getAdapterPosition()).getTitle());
+                    if (!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getSelftext()))
+                        postData.setSelftext(childList.get(holder.getAdapterPosition()).getSelftext());
+                    if (!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getImageDetailURL())) {
+                        String ext = MimeTypeMap.getFileExtensionFromUrl(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                        if (!TextUtils.isEmpty(ext) && (ext.equals("jpg") || ext.equals("png")))
+                            postData.setImageDetailURL(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                    }
+                } else {
+                    if (!TextUtils.isEmpty(posts.get(holder.getAdapterPosition()).getThumbnail()))
+                        postData.setThumbnail(posts.get(holder.getAdapterPosition()).getThumbnail());
+                    postData.setTitle(posts.get(holder.getAdapterPosition()).getTitle());
+                    if (!TextUtils.isEmpty(posts.get(holder.getAdapterPosition()).getSelftext()))
+                        postData.setSelftext(posts.get(holder.getAdapterPosition()).getSelftext());
+                    if (!TextUtils.isEmpty(posts.get(holder.getAdapterPosition()).getImageDetailURL())) {
+                        String ext = MimeTypeMap.getFileExtensionFromUrl(posts.get(holder.getAdapterPosition()).getImageDetailURL());
+                        if (!TextUtils.isEmpty(ext) && (ext.equals("jpg") || ext.equals("png")))
+                            postData.setImageDetailURL(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                    }
                 }
                 buttonsListener.onLayoutClicked(holder.getAdapterPosition(), postData, ups, comments);
             }

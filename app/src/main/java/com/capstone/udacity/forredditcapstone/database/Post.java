@@ -20,8 +20,9 @@ public class Post {
     private String ups;
     private String comments;
     private String createdUTC;
+    private String imageDetailURL;
 
-    public Post(@NonNull String fullname, String header, String thumbnail, String author, String title, String selftext, String permalink, String ups, String comments, String createdUTC) {
+    public Post(@NonNull String fullname, String header, String thumbnail, String author, String title, String selftext, String permalink, String ups, String comments, String createdUTC, String imageDetailURL) {
         this.fullname = fullname;
         this.header = header;
         this.thumbnail = thumbnail;
@@ -32,6 +33,7 @@ public class Post {
         this.ups = ups;
         this.comments = comments;
         this.createdUTC = createdUTC;
+        this.imageDetailURL = imageDetailURL;
     }
     //Every field that's stored in the database needs to be either public or have a "getter" method.
     @NonNull
@@ -73,6 +75,10 @@ public class Post {
         return createdUTC;
     }
 
+    public String getImageDetailURL() {
+        return imageDetailURL;
+    }
+
     public void setFullname(@NonNull String fullname) {
         this.fullname = fullname;
     }
@@ -111,5 +117,9 @@ public class Post {
 
     public void setCreatedUTC(String createdUTC) {
         this.createdUTC = createdUTC;
+    }
+
+    public void setImageDetailURL(String imageDetailURL) {
+        this.imageDetailURL = imageDetailURL;
     }
 }

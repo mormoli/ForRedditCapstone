@@ -6,7 +6,7 @@ import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
 import android.content.Context;
 
-@Database(entities = {Comment.class, Post.class}, version = 1, exportSchema = false)
+@Database(entities = {Comment.class, Post.class, Favorite.class}, version = 1, exportSchema = false)
 public abstract class RedditDatabase extends RoomDatabase {
     public abstract RedditDAO redditDAO();
     private static volatile RedditDatabase INSTANCE;

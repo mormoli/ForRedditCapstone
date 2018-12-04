@@ -3,7 +3,6 @@ package com.capstone.udacity.forredditcapstone;
 import android.app.SearchManager;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
@@ -34,11 +33,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.capstone.udacity.forredditcapstone.database.Converters;
 import com.capstone.udacity.forredditcapstone.database.DataViewModel;
 import com.capstone.udacity.forredditcapstone.database.Post;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
+import com.capstone.udacity.forredditcapstone.model.favorites.Favorites;
+import com.capstone.udacity.forredditcapstone.model.favorites.FavoritesData;
 import com.capstone.udacity.forredditcapstone.model.search.SearchData;
 import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 import com.capstone.udacity.forredditcapstone.model.subreddits.SubList;
@@ -79,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     HomePageAdapter homePageAdapter;
     private List<PostData> childList;
     private List<SearchData> searchData;
+    private List<Post> posts;
     private SearchView searchView;
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
@@ -106,13 +109,21 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         //setting receiver object for intent service class
         mReceiver = new ResponseReceiver(new Handler());
         mReceiver.setReceiver(this);
+        //initialize recycler view and adapter
+        populateUI(new ArrayList<PostData>());
 
         //view model object for database operations e.g Live data observe.
         mDataViewModel = ViewModelProviders.of(this).get(DataViewModel.class);
         mDataViewModel.getAllPosts().observe(this, new Observer<List<Post>>() {
             @Override
             public void onChanged(@Nullable List<Post> posts) {
-                homePageAdapter.setPosts(posts);
+                if(posts == null || posts.size() == 0 ){
+                    // No data in database
+                    if(!TextUtils.isEmpty(userAccessToken))getHomePage(userAccessToken);
+                    Log.d(TAG, "database empty first initialization.");
+                } else {
+                    homePageAdapter.setPosts(posts);
+                }
             }
         });
 
@@ -129,10 +140,10 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 Intent intent = new Intent(this, LoginActivity.class);
                 intent.putExtra("user", "new user");
                 startActivity(intent);
-            } else if(savedInstanceState != null){
+            } /*else if(savedInstanceState != null){
                 childList = savedInstanceState.getParcelableArrayList("homepage");
                 populateUI(childList);
-                /*recyclerView.getViewTreeObserver()
+                recyclerView.getViewTreeObserver()
                         .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                             @Override
                             public void onGlobalLayout() {
@@ -147,10 +158,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                                     recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
                                 }
                             }
-                        });*/
-            } else {
-                //retrieve data from user's home page
-                getHomePage(userAccessToken);
+                        });
+            } */else {
+                //if(posts == null)
                 //get username and save to shared preferences for later use.
                 if(TextUtils.isEmpty(sharedPreferences.getString("username", null))) getUserInfo();
             }
@@ -201,6 +211,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 return true;
             case R.id.settings_favorites:
                 //retrieve favorite list
+                getUserFavorites();
                 return true;
             case R.id.settings_logout:
                 //revoke token
@@ -209,6 +220,50 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void getUserFavorites(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.BASE_OAUTH_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
+        String authorization = "bearer " + userAccessToken;
+
+        Map<String, String> map = new HashMap<>();
+        map.put("include_over_18", "off");//query saved data only if content is safe for work.
+        String username = sharedPreferences.getString("username", "");
+
+        Call<Favorites> call = theRedditApi.getUserSavedData(authorization, username, map);
+        call.enqueue(new Callback<Favorites>() {
+            @Override
+            public void onResponse(@NonNull Call<Favorites> call, @NonNull Response<Favorites> response) {
+                Log.d(TAG, " server response: " + response.toString());
+                assert response.body() != null;
+                List<FavoritesData> favoritesData = new ArrayList<>();
+                if(response.code() == 200) {//Server response OK
+                    if(response.body().getData().getFavoritesList().size() > 0){//User has saved data
+                        for(int i=0; i<response.body().getData().getFavoritesList().size(); i++)//save data to list
+                            favoritesData.add(response.body().getData().getFavoritesList().get(i).getData());
+                        //open favorites activity to show data.
+                    } else {//User has no data to show !
+                        Toast.makeText(getApplicationContext(), getString(R.string.no_favorites_data_error), Toast.LENGTH_SHORT).show();
+                    }
+                } else if(response.code() == 401){
+                    //try to refresh token.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+                    getAccessToken("refresh");
+                } else {
+                    //403 or something else happened, warn user.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Favorites> call, @NonNull Throwable t) {
+
+            }
+        });
     }
 
     @Override
@@ -240,13 +295,13 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         });
         return true;
     }
-
+    // method that opens search view
     public void openSearchListView(){
         Intent intent = new Intent(this, SearchListActivity.class);
         intent.putParcelableArrayListExtra("searchData", (ArrayList<? extends Parcelable>) searchData);
         startActivity(intent);
     }
-
+    // method that opens subreddit list view
     public void openSubredditListView(List<SubListData> subListData){
         Intent intent = new Intent(this, SubredditListActivitiy.class);
         intent.putParcelableArrayListExtra("listData", (ArrayList<? extends Parcelable>) subListData);
@@ -366,7 +421,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                         childList.add(response.body().getData().getChildren().get(i).getData());
                     //Log.d(TAG, " array title: " + childList.get(0).getData().getTitle());
                     Log.d(TAG, " data size: " + childList.size());
-                    populateUI(childList);
+                    populateUI(childList);//populate main activity screen with post data.
+                    populateDB(childList);//populate database with reddit posts data.
                 } else { //probably error code is 401 --> try refresh the token then call method again
                     Log.d(TAG, " response code: " + response.code());
                     if(refreshCount < 2) getAccessToken("homepage");
@@ -381,7 +437,19 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         });
     }
     /*
-    * Method that populates recycler view of activity with reddit's post data*/
+    * Method that populates database with post data.
+    * */
+    public void populateDB(List<PostData> childList){
+        Log.d(TAG, "populate database method calls");
+        if(posts == null) posts = new ArrayList<>();
+        for(int i=0; i<childList.size(); i++){
+            posts.add(Converters.fromRetrofitPojoToRoom(childList.get(i)));
+        }
+        mDataViewModel.insertAll(posts);
+    }
+    /*
+    * Method that populates recycler view of activity with reddit's post data
+    * */
     public void populateUI(final List<PostData> childList){
         homePageAdapter = new HomePageAdapter(childList, new HomePageAdapter.ButtonsListener(){
 
@@ -415,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
 
             @Override
             public void onLayoutClicked(int position, PostData postData, String ups, String comments) {
-                //open detailed post view
+                //open details activity with user selected post and comments
                 String subredditName = childList.get(position).getSubredditName();
                 String postId = childList.get(position).getId();
                 Intent intent = new Intent(getApplicationContext(), DetailsActivity.class);
@@ -561,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         //finish();
         Toast.makeText(this, R.string.no_connection_error, Toast.LENGTH_SHORT).show();
     }
-    @SuppressWarnings("ConstantConditions")
+    /*@SuppressWarnings("ConstantConditions")
     @Override
     protected void onResume() {
         super.onResume();
@@ -589,7 +657,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             outState.putParcelable("scroll_state", recyclerViewState);
             //outState.putInt("scrollPosition", lastVisiblePosition);
         }
-    }
+    }*/
     /*
     * Method that retrieves server response code and take actions about em.
     * */
@@ -603,9 +671,13 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 //save action: save post to database
             } else {
                 //hide action: remove item and notify data changed.
-                childList.remove(mPosition);
-                homePageAdapter.notifyItemRemoved(mPosition);
-                homePageAdapter.notifyItemRangeChanged(mPosition, childList.size());
+                if(posts == null) { // if database is empty
+                    childList.remove(mPosition);
+                    homePageAdapter.notifyItemRemoved(mPosition);
+                    homePageAdapter.notifyItemRangeChanged(mPosition, childList.size());
+                } else {
+                    mDataViewModel.deletePostByName(fullName);
+                }
             }
         } else if(resultCode == 401){
             //try to refresh token.

@@ -11,12 +11,14 @@ public class DataViewModel extends AndroidViewModel {
     private DatabaseRepository mRepository;
     private LiveData<List<Comment>> mAllComments;
     private LiveData<List<Post>> mAllPosts;
+    private LiveData<List<Favorite>> mAllFavorites;
 
     public DataViewModel(@NonNull Application application) {
         super(application);
         mRepository = new DatabaseRepository(application);
         mAllComments = mRepository.getAllComments();
         mAllPosts = mRepository.getAllPosts();
+        mAllFavorites = mRepository.getAllFavorites();
     }
 
     public LiveData<List<Comment>> getAllComments() {
@@ -27,6 +29,18 @@ public class DataViewModel extends AndroidViewModel {
         return mAllPosts;
     }
 
+    public LiveData<List<Favorite>> getAllFavorites() { return mAllFavorites; }
+
+    public void deleteAllComments(){
+        mRepository.deleteAllComments();
+    }
+
+    public void deleteAllPosts(){
+        mRepository.deleteAllPosts();
+    }
+
+    public void deleteAllFavorites() { mRepository.deleteAllFavorites(); }
+
     public void insert(Comment comment){
         mRepository.insert(comment);
     }
@@ -34,4 +48,18 @@ public class DataViewModel extends AndroidViewModel {
     public void insert(Post post){
         mRepository.insert(post);
     }
+
+    public void insert(Favorite favorite) { mRepository.insert(favorite); }
+
+    public void insertAll(List<Post> posts){
+        mRepository.insertPosts(posts);
+    }
+
+    public void insertAllFavorites(List<Favorite> favorites) { mRepository.insertFavorites(favorites); }
+
+    public void deletePostByName(String name){
+        mRepository.deletePostByName(name);
+    }
+
+    public void deleteFavoriteByName(String name) { mRepository.deleteFavoriteByName(name); }
 }

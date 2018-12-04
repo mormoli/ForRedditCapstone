@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import com.capstone.udacity.forredditcapstone.model.CommentList;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.UserInfo;
+import com.capstone.udacity.forredditcapstone.model.favorites.Favorites;
 import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 import com.capstone.udacity.forredditcapstone.model.subreddits.SubList;
 
@@ -75,8 +76,8 @@ public interface TheRedditApi {
     //GET /user/username/saved : saved posts or comments
     @GET("/user/{username}/saved")
     @Headers(Constants.USER_AGENT)
-    Call<ResponseBody> getUserSavedData(@Header("Authorization") String authorization,@Path(value = "username") String username,
-                                        @QueryMap Map<String, String > parameters);
+    Call<Favorites> getUserSavedData(@Header("Authorization") String authorization, @Path(value = "username") String username,
+                                     @QueryMap Map<String, String > parameters);
     //GET /subreddits/search : Search subreddits by title and description.
     @GET("/subreddits/search.json")
     @Headers(Constants.USER_AGENT)

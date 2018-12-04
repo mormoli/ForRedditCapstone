@@ -10,12 +10,14 @@ public class DatabaseRepository {
     private RedditDAO mRedditDao;
     private LiveData<List<Comment>> mAllComments;
     private LiveData<List<Post>> mAllPosts;
+    private LiveData<List<Favorite>> mAllFavorites;
 
     DatabaseRepository(Application application){
         RedditDatabase db = RedditDatabase.getDatabase(application);
         mRedditDao = db.redditDAO();
         mAllComments = mRedditDao.getAllComments();
         mAllPosts = mRedditDao.getAllPosts();
+        mAllFavorites = mRedditDao.getAllFavorites();
     }
 
     LiveData<List<Comment>> getAllComments(){
@@ -26,6 +28,8 @@ public class DatabaseRepository {
         return mAllPosts;
     }
 
+    LiveData<List<Favorite>> getAllFavorites(){ return mAllFavorites; }
+
     public void insert(Comment comment){
         new insertCommentAsyncTask(mRedditDao).execute(comment);
     }
@@ -34,9 +38,15 @@ public class DatabaseRepository {
         new insertPostAsyncTask(mRedditDao).execute(post);
     }
 
-    public void insertPosts(Post... posts){
+    public void insert(Favorite favorite){ new insertFavoriteAsyncTask(mRedditDao).execute(favorite); }
+
+    @SuppressWarnings("unchecked")
+    public void insertPosts(List<Post> posts){
         new insertAllPosts(mRedditDao).execute(posts);
     }
+
+    @SuppressWarnings("unchecked")
+    public void insertFavorites(List<Favorite> favorites){ new insertAllFavorites(mRedditDao).execute(favorites); }
 
     public void deleteAllComments(){
         new deleteAllCommentsAsyncTask(mRedditDao).execute();
@@ -46,20 +56,38 @@ public class DatabaseRepository {
         new deleteAllPostsAsyncTask(mRedditDao).execute();
     }
 
+    public void deleteAllFavorites() { new deleteAllFavoritesAsyncTask(mRedditDao).execute(); }
+
     public void deletePostByName(String name){
         new deletePostByName(mRedditDao).execute(name);
     }
 
-    private static class insertAllPosts extends AsyncTask<Post, Void, Void>{
+    public void deleteFavoriteByName(String name){ new deleteFavoriteByName(mRedditDao).execute(name); }
+
+    private static class insertAllFavorites extends AsyncTask<List<Favorite>, Void, Void>{
+        private RedditDAO mAsyncTaskDao;
+
+        insertAllFavorites(RedditDAO dao){ mAsyncTaskDao = dao; }
+
+        @SafeVarargs
+        @Override
+        protected final Void doInBackground(List<Favorite>... lists) {
+            mAsyncTaskDao.insertFavorites(lists[0]);
+            return null;
+        }
+    }
+
+    private static class insertAllPosts extends AsyncTask<List<Post>, Void, Void>{
         private RedditDAO mAsyncTaskDao;
 
         insertAllPosts(RedditDAO dao){
             mAsyncTaskDao = dao;
         }
 
+        @SafeVarargs
         @Override
-        protected Void doInBackground(Post... posts) {
-            mAsyncTaskDao.insertPosts(posts[0]);
+        protected final Void doInBackground(List<Post>... lists) {
+            mAsyncTaskDao.insertPosts(lists[0]);
             return null;
         }
     }
@@ -92,6 +120,20 @@ public class DatabaseRepository {
         }
     }
 
+    private static class insertFavoriteAsyncTask extends AsyncTask<Favorite, Void, Void>{
+        private RedditDAO mAsyncTaskDao;
+
+        insertFavoriteAsyncTask(RedditDAO dao){
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(Favorite... favorites) {
+            mAsyncTaskDao.insert(favorites[0]);
+            return null;
+        }
+    }
+
     private static class deleteAllCommentsAsyncTask extends AsyncTask<Void, Void, Void>{
         private RedditDAO mAsyncTaskDao;
 
@@ -120,6 +162,20 @@ public class DatabaseRepository {
         }
     }
 
+    private static class deleteAllFavoritesAsyncTask extends AsyncTask<Void, Void, Void>{
+        private RedditDAO mAsyncTaskDao;
+
+        deleteAllFavoritesAsyncTask(RedditDAO redditDAO){
+            mAsyncTaskDao = redditDAO;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            mAsyncTaskDao.deleteAllFavorites();
+            return null;
+        }
+    }
+
     private static class deletePostByName extends AsyncTask<String, Void, Void>{
         private RedditDAO mAsyncTaskDao;
 
@@ -130,6 +186,20 @@ public class DatabaseRepository {
         @Override
         protected Void doInBackground(String... args) {
             mAsyncTaskDao.deletePostByName(args[0]);
+            return null;
+        }
+    }
+
+    private static class deleteFavoriteByName extends AsyncTask<String , Void, Void>{
+        private RedditDAO mAsyncTaskDao;
+
+        deleteFavoriteByName(RedditDAO redditDAO){
+            mAsyncTaskDao = redditDAO;
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            mAsyncTaskDao.deleteFavoriteByName(strings[0]);
             return null;
         }
     }

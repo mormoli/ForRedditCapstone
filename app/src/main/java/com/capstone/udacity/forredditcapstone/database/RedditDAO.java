@@ -17,11 +17,17 @@ public interface RedditDAO {
     @Insert(onConflict = IGNORE)
     void insert(Post post);
     @Insert(onConflict = REPLACE)
-    void insertPosts(Post... posts);
+    void insert(Favorite favorite);
+    @Insert(onConflict = REPLACE)
+    void insertPosts(List<Post> posts);
+    @Insert(onConflict = REPLACE)
+    void insertFavorites(List<Favorite> favorites);
     @Query("DELETE FROM comment_table")
     void deleteAllComments();
     @Query("DELETE FROM post_table")
     void deleteAllPosts();
+    @Query("DELETE FROM favorites_table")
+    void deleteAllFavorites();
     @Query("SELECT * FROM comment_table WHERE name == :name")
     Comment retrieveCommentByName(String name);
     @Query("SELECT * from comment_table ORDER BY name ASC")
@@ -30,6 +36,10 @@ public interface RedditDAO {
     Post retrievePostByName(String name);
     @Query("SELECT * from post_table ORDER BY name ASC")
     LiveData<List<Post>> getAllPosts();
+    @Query("SELECT * FROM favorites_table ORDER BY name ASC")
+    LiveData<List<Favorite>> getAllFavorites();
     @Query("DELETE FROM post_table WHERE name == :name")
     void deletePostByName(final String name);
+    @Query("DELETE FROM favorites_table WHERE name == :name")
+    void deleteFavoriteByName(final String name);
 }
