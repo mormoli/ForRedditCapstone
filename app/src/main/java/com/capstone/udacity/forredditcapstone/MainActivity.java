@@ -246,6 +246,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                         for(int i=0; i<response.body().getData().getFavoritesList().size(); i++)//save data to list
                             favoritesData.add(response.body().getData().getFavoritesList().get(i).getData());
                         //open favorites activity to show data.
+                        openFavoritesView(favoritesData);
                     } else {//User has no data to show !
                         Toast.makeText(getApplicationContext(), getString(R.string.no_favorites_data_error), Toast.LENGTH_SHORT).show();
                     }
@@ -294,6 +295,12 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             }
         });
         return true;
+    }
+    //Method that opens user saved favorite list view.
+    public void openFavoritesView(List<FavoritesData> favoritesData){
+        Intent intent = new Intent(this, FavoritesActivity.class);
+        intent.putParcelableArrayListExtra("favoritesData", (ArrayList<? extends Parcelable>) favoritesData);
+        startActivity(intent);
     }
     // method that opens search view
     public void openSearchListView(){

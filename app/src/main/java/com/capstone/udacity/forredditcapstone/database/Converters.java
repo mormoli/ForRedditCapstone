@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone.database;
 import android.arch.persistence.room.TypeConverter;
 
 import com.capstone.udacity.forredditcapstone.model.PostData;
+import com.capstone.udacity.forredditcapstone.model.favorites.FavoritesData;
 
 public class Converters {
     private static final int SECOND_MILLIS = 1000;
@@ -18,6 +19,12 @@ public class Converters {
 
         return new Post(postData.getFullName(), header, postData.getThumbnail(), postData.getAuthor(),
                 postData.getTitle(), postData.getSelftext(), postData.getPermalink(), ups, comments, createdUTC, postData.getImageDetailURL());
+    }
+
+    public static Favorite fromFavoritePojoToRoom(FavoritesData favoritesData){
+        return new Favorite(favoritesData.getTitle(), favoritesData.getSubreddit(), favoritesData.getDomain(), favoritesData.getSubredditNamePrefixed(),
+                favoritesData.getFullname(), favoritesData.getAuthor(), favoritesData.getPermalink(), favoritesData.getCreatedUTC(),
+                favoritesData.getBody(), favoritesData.getLinkTitle());
     }
 
     public static String getTimeAgo(long time){

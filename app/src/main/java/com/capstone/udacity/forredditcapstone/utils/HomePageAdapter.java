@@ -204,7 +204,8 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
-        notifyDataSetChanged();
+        //notifyDataSetChanged();
+        notifyItemRangeChanged(0, posts.size());
     }
 
     public String numberFormat(int number){

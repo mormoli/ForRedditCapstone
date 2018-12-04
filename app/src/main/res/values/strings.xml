@@ -40,4 +40,6 @@
     <string name="search_text_error">Search text must be minimum of 3 characters.</string>
     <string name="no_favorites_data_error">You have no saved data.</string>
     <string name="title_activity_favorites">FavoritesActivity</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>
