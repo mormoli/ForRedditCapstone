@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone.utils;
 import android.support.annotation.NonNull;
 import android.support.design.card.MaterialCardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -80,7 +81,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<CommentsAdapter.Commen
     public void onBindViewHolder(@NonNull final CommentsHolder commentsHolder, int position) {
         String authorHeader = commentLists.get(position).getAuthor() + " " + numberFormat(commentLists.get(position).getScore()) + " points . " + getTimeAgo(commentLists.get(position).getCreatedUTC());
         commentsHolder.commentHeader.setText(authorHeader);
-        commentsHolder.commentBody.setText(commentLists.get(position).getBody());
+        commentsHolder.commentBody.setText(Html.fromHtml(commentLists.get(position).getBody()));
         //setting listener on save button and to comment layout
         commentsHolder.commentSaveButton.setOnClickListener(new View.OnClickListener() {
             @Override

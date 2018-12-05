@@ -1,11 +1,14 @@
 package com.capstone.udacity.forredditcapstone;
 
 import android.app.IntentService;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.capstone.udacity.forredditcapstone.utils.Constants;
@@ -55,9 +58,29 @@ public class RedditPostService extends IntentService {
                     String srName = intent.getStringExtra("srName");
                     onConfirmClicked(userAccessToken, action, false, srName);
                     break;
+                /*case Constants.UPDATE_ACTION :
+                    String header = intent.getStringExtra("widgetHeader");
+                    String body = intent.getStringExtra("widgetBody");
+                    String link = intent.getStringExtra("widgetOnClick");
+                    onUpdateWidgetCalled(header, body, link);
+                    break;*/
             }
         }
     }
+    /*
+    * Method that update app widget
+    * */
+    /*public void onUpdateWidgetCalled(String header, String body, String link){
+        Intent intent = new Intent(this, RedditAppWidget.class);
+        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+        intent.putExtra("widgetHeader", header);
+        intent.putExtra("widgetBody", body);
+        intent.putExtra("widgetOnClick", link);
+        int[] ids = AppWidgetManager.getInstance(getApplication())
+                .getAppWidgetIds(new ComponentName(getApplication(), RedditAppWidget.class));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+        sendBroadcast(intent);
+    }*/
     /*
     * Method that handles user hide button click on reddit posts
     * */
@@ -141,7 +164,9 @@ public class RedditPostService extends IntentService {
                 Log.d(TAG, " server response: " + response.toString());
                 Log.d(TAG, " response code: " + response.code());
                 Bundle bundle = new Bundle();
-                bundle.putString("data", response.toString());
+                if(!TextUtils.isEmpty(response.toString()))
+                    bundle.putString("data", response.toString());
+                else bundle.putString("data", "success");
                 mReceiver.send(response.code(), bundle);
             }
 

@@ -17,7 +17,7 @@ public class Converters {
         String comments = numberFormat(postData.getNumComments()) + " comments";
         String header = postData.getSubredditNamePrefixed() + " . posted bu u/" + postData.getAuthor() + " " + createdUTC;
 
-        return new Post(postData.getFullName(), header, postData.getThumbnail(), postData.getAuthor(),
+        return new Post(postData.getFullName(), postData.getSubredditName(), postData.getId(), header, postData.getThumbnail(), postData.getAuthor(),
                 postData.getTitle(), postData.getSelftext(), postData.getPermalink(), ups, comments, createdUTC, postData.getImageDetailURL());
     }
 
@@ -26,6 +26,16 @@ public class Converters {
                 favoritesData.getFullname(), favoritesData.getAuthor(), favoritesData.getPermalink(), favoritesData.getCreatedUTC(),
                 favoritesData.getBody(), favoritesData.getLinkTitle());
     }
+
+    public static Favorite fromPostDataToFavorites(PostData postData){
+        return new Favorite(postData.getTitle(), postData.getSubredditName(), "", postData.getSubredditNamePrefixed(), postData.getFullName(),
+                postData.getAuthor(), postData.getPermalink(), postData.getCreatedUTC(), "", "");
+    }
+
+    /*public static Favorite fromPostToFavoriteData(Post post){
+        return new Favorite(post.getHeader(), post.getSubredditName(), "", "", post.getFullname(), post.getAuthor(),
+                post.getPermalink(), 1, )
+    }*/
 
     public static String getTimeAgo(long time){
         if (time < 1000000000000L) {

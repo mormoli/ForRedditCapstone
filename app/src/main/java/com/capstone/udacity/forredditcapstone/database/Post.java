@@ -11,6 +11,8 @@ public class Post {
     @NonNull
     @ColumnInfo(name = "name")
     private String fullname;
+    private String subredditName;
+    private String id;
     private String header;
     private String thumbnail;
     private String author;
@@ -22,8 +24,10 @@ public class Post {
     private String createdUTC;
     private String imageDetailURL;
 
-    public Post(@NonNull String fullname, String header, String thumbnail, String author, String title, String selftext, String permalink, String ups, String comments, String createdUTC, String imageDetailURL) {
+    public Post(@NonNull String fullname, String subredditName, String id,String header, String thumbnail, String author, String title, String selftext, String permalink, String ups, String comments, String createdUTC, String imageDetailURL) {
         this.fullname = fullname;
+        this.subredditName = subredditName;
+        this.id = id;
         this.header = header;
         this.thumbnail = thumbnail;
         this.author = author;
@@ -39,6 +43,14 @@ public class Post {
     @NonNull
     public String getFullname() {
         return fullname;
+    }
+
+    public String getSubredditName() {
+        return subredditName;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getHeader(){ return header; }
@@ -81,6 +93,14 @@ public class Post {
 
     public void setFullname(@NonNull String fullname) {
         this.fullname = fullname;
+    }
+
+    public void setSubredditName(String subredditName) {
+        this.subredditName = subredditName;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void setHeader(String header) {

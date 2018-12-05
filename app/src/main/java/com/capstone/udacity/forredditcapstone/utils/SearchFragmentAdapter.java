@@ -56,6 +56,11 @@ public class SearchFragmentAdapter extends RecyclerView.Adapter<SearchFragmentAd
         });
     }
 
+    public void setSearchData(List<SearchData> searchData){
+        this.searchData = searchData;
+        notifyDataSetChanged();
+    }
+
     public String numberFormat(int number){
         String strNumber;
         if(Math.abs(number / 1000000) > 1) strNumber = (number / 1000000) + "m";

@@ -13,6 +13,7 @@ import java.util.Map;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
@@ -68,6 +69,7 @@ public interface TheRedditApi {
     * @param sr / sr_name : A comma-separated list of subreddit fullnames (when using the "sr" parameter),
     *       or of subreddit names (when using the "sr_name" parameter).
     **/
+    @FormUrlEncoded //java.lang.IllegalArgumentException: @Field parameters can only be used with form encoding.
     @POST("/api/subscribe")
     @Headers(Constants.USER_AGENT)
     Call<ResponseBody> onConfirmClicked(@Header("Authorization") String authorization, @Field("action") String action,

@@ -57,6 +57,10 @@ public class DataViewModel extends AndroidViewModel {
 
     public void insertAllFavorites(List<Favorite> favorites) { mRepository.insertFavorites(favorites); }
 
+    public Favorite retrieveFavoriteByName(String name) {
+        return mRepository.retriveFavoriteByName(name);
+    }
+
     public void deletePostByName(String name){
         mRepository.deletePostByName(name);
     }

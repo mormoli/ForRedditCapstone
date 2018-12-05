@@ -174,7 +174,7 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             public void onClick(View v) {
                 PostData postData = new PostData();
                 postData.setSubredditNamePrefixed(holder.headerText.getText().toString());
-                if(childList != null) {
+                if(childList != null && childList.size() > 0) {
                     if (!TextUtils.isEmpty(childList.get(holder.getAdapterPosition()).getThumbnail()))
                         postData.setThumbnail(childList.get(holder.getAdapterPosition()).getThumbnail());
                     postData.setTitle(childList.get(holder.getAdapterPosition()).getTitle());
@@ -194,7 +194,7 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
                     if (!TextUtils.isEmpty(posts.get(holder.getAdapterPosition()).getImageDetailURL())) {
                         String ext = MimeTypeMap.getFileExtensionFromUrl(posts.get(holder.getAdapterPosition()).getImageDetailURL());
                         if (!TextUtils.isEmpty(ext) && (ext.equals("jpg") || ext.equals("png")))
-                            postData.setImageDetailURL(childList.get(holder.getAdapterPosition()).getImageDetailURL());
+                            postData.setImageDetailURL(posts.get(holder.getAdapterPosition()).getImageDetailURL());
                     }
                 }
                 buttonsListener.onLayoutClicked(holder.getAdapterPosition(), postData, ups, comments);
@@ -204,8 +204,8 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
-        //notifyDataSetChanged();
-        notifyItemRangeChanged(0, posts.size());
+        notifyDataSetChanged();
+        //notifyItemRangeChanged(0, posts.size());
     }
 
     public String numberFormat(int number){

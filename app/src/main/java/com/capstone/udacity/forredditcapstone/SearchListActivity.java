@@ -1,8 +1,11 @@
 package com.capstone.udacity.forredditcapstone;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
@@ -12,24 +15,30 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.search.SearchData;
+import com.capstone.udacity.forredditcapstone.model.search.SearchList;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.SearchFragmentAdapter;
+import com.capstone.udacity.forredditcapstone.utils.TheRedditApi;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,6 +46,11 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class SearchListActivity extends AppCompatActivity implements ResponseReceiver.OnResponse{
     @BindView(R.id.search_list_view)
@@ -50,6 +64,8 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     private Parcelable recyclerViewState;
     private List<SearchData> searchData;
     private ResponseReceiver mReceiver;
+    private SearchView searchView;
+    private String searchString;
     private String actionText;
     private int mPosition;
     private SearchFragmentAdapter searchFragmentAdapter;
@@ -69,6 +85,10 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
         userAccessToken = sharedPreferences.getString("accessToken", null);
         userRefreshToken = sharedPreferences.getString("refreshToken", null);
 
+        //setting receiver object for intent service class
+        mReceiver = new ResponseReceiver(new Handler());
+        mReceiver.setReceiver(this);
+
         if(getIntent() != null && getIntent().hasExtra("searchData")){
             searchData = getIntent().getParcelableArrayListExtra("searchData");
             searchFragmentAdapter = new SearchFragmentAdapter(searchData);
@@ -85,7 +105,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         intent.putExtra("receiver", mReceiver);
                         intent.putExtra("accessToken", userAccessToken);
                         intent.putExtra("action", action);
-                        intent.putExtra("srName", searchData.get(position).getFullName());
+                        intent.putExtra("srName", searchData.get(position).getDisplayName());
                         intent.setAction(Constants.API_SUBSCRIBE);
                         startService(intent);
                         mPosition = position;
@@ -96,7 +116,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         intent.putExtra("receiver", mReceiver);
                         intent.putExtra("accessToken", userAccessToken);
                         intent.putExtra("action", action);
-                        intent.putExtra("srName", searchData.get(position).getFullName());
+                        intent.putExtra("srName", searchData.get(position).getDisplayName());
                         intent.setAction(Constants.API_SUBSCRIBE);
                         startService(intent);
                         mPosition = position;
@@ -140,7 +160,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                 assert response.body() != null;
                 String json = response.body().string();
 
-                JSONObject data = null;
+                JSONObject data;
 
                 try {
                     data = new JSONObject(json);
@@ -168,6 +188,86 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        menu.findItem(R.id.settings_homepage).setVisible(false);
+        menu.findItem(R.id.settings_subreddits).setVisible(false);
+        menu.findItem(R.id.settings_favorites).setVisible(false);
+        // Retrieve the SearchView and plug it into SearchManager
+        //@see 'https://developer.android.com/guide/topics/search/search-dialog#java'
+        searchView = (SearchView) menu.findItem(R.id.settings_search).getActionView();
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                if(s.length() >= 3){
+                    searchString = s;
+                    Log.d(TAG, " Search String: " + searchString);
+                    getSearchResults();
+                } else {
+                    Toast.makeText(getApplicationContext(), getString(R.string.search_text_error), Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+
+                return false;
+            }
+        });
+        return true;
+    }
+
+    /*
+     * Method that returns subreddit search results
+     * */
+    public void getSearchResults(){
+        searchView.setQuery("", false); //clear the text
+        //searchView.setIconified(true);//close the search view
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Constants.BASE_OAUTH_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
+        String authorization = "bearer " + userAccessToken;
+        Map<String, Object> map = new HashMap<>();
+        map.put("q", searchString);
+        map.put("limit", "10");
+        map.put("include_over_18", "off");
+        Call<SearchList> call = theRedditApi.getSearchResults(authorization, map);
+
+        call.enqueue(new Callback<SearchList>() {
+            @Override
+            public void onResponse(@NonNull Call<SearchList> call, @NonNull Response<SearchList> response) {
+                Log.d(TAG, " server response: " + response.toString());
+
+                if(response.code() == 200){
+                    assert response.body() != null;
+                    if(response.body().getData().getChildren().size() > 0) {
+                        if(searchData == null) searchData = new ArrayList<>();
+                        else searchData.clear();
+                        for(int i=0; i<response.body().getData().getChildren().size(); i++)
+                            searchData.add(response.body().getData().getChildren().get(i).getSearchData());
+                        //Log.d(TAG, " DATA : " + searchData.get(0).toString());
+                        //set to adapter for new search results and notify data set has changed.
+                        searchFragmentAdapter.setSearchData(searchData);
+                    } else{
+                        Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Log.d(TAG, "returned code : " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<SearchList> call, @NonNull Throwable t) {
+                Log.e(TAG, " retrofit error: " + t.getMessage());
+            }
+        });
     }
     @SuppressWarnings("ConstantConditions")
     @Override

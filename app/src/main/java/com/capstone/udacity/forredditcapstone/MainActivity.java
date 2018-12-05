@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.database.Converters;
 import com.capstone.udacity.forredditcapstone.database.DataViewModel;
+import com.capstone.udacity.forredditcapstone.database.Favorite;
 import com.capstone.udacity.forredditcapstone.database.Post;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
@@ -82,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     private List<PostData> childList;
     private List<SearchData> searchData;
     private List<Post> posts;
+    private List<Favorite> favorites;
     private SearchView searchView;
     private String userAccessToken, userRefreshToken;
     private Parcelable recyclerViewState;
@@ -403,6 +405,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     //https://www.getpostman.com
     //Postman app used to create returning values
     public void getHomePage(final String userAccessToken) {
+        mDataViewModel.deleteAllPosts();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -458,12 +461,16 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     * Method that populates recycler view of activity with reddit's post data
     * */
     public void populateUI(final List<PostData> childList){
+        /*final boolean favoriteListHasData = mDataViewModel.getAllFavorites().getValue() != null
+                && mDataViewModel.getAllFavorites().getValue().size() > 0;*/
         homePageAdapter = new HomePageAdapter(childList, new HomePageAdapter.ButtonsListener(){
 
             @Override
             public void onHideButtonClick(View view, int position) {
                 //hide post and request to server with intent service class
-                fullName = childList.get(position).getFullName();
+                if(childList != null && childList.size() > 0)
+                    fullName = childList.get(position).getFullName();
+                else fullName = mDataViewModel.getAllPosts().getValue().get(position).getFullname();
                 Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
                 intent.putExtra("receiver", mReceiver);
                 intent.putExtra("accessToken", userAccessToken);
@@ -477,7 +484,9 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             @Override
             public void onSaveButtonClick(View view, int position) {
                 //save post with room database also send request save to the reddit with intent service class
-                fullName = childList.get(position).getFullName();
+                if(childList != null && childList.size() > 0)
+                    fullName = childList.get(position).getFullName();
+                else fullName = mDataViewModel.getAllPosts().getValue().get(position).getFullname();
                 Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
                 intent.putExtra("receiver", mReceiver);
                 intent.putExtra("accessToken", userAccessToken);
@@ -491,8 +500,14 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             @Override
             public void onLayoutClicked(int position, PostData postData, String ups, String comments) {
                 //open details activity with user selected post and comments
-                String subredditName = childList.get(position).getSubredditName();
-                String postId = childList.get(position).getId();
+                String subredditName, postId;
+                if(childList != null && childList.size() > 0) { //resource from network available.
+                    subredditName = childList.get(position).getSubredditName();
+                    postId = childList.get(position).getId();
+                } else { // get items from database.
+                    subredditName = mDataViewModel.getAllPosts().getValue().get(position).getSubredditName();
+                    postId = mDataViewModel.getAllPosts().getValue().get(position).getId();
+                }
                 Intent intent = new Intent(getApplicationContext(), DetailsActivity.class);
                 intent.putExtra("postData", postData);
                 intent.putExtra("points", ups);
@@ -676,14 +691,36 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             Toast.makeText(this, "POST "+ action + " successfully.", Toast.LENGTH_SHORT).show();
             if(action.equals("saved")){
                 //save action: save post to database
+                if(childList != null && childList.size() > 0){ //add data from network resource to data
+                    mDataViewModel.insert(Converters.fromPostDataToFavorites(childList.get(mPosition)));
+                    //update app widget from saved data
+                    Intent intent = new Intent(this, RedditPostService.class);
+                    intent.putExtra("widgetHeader", childList.get(mPosition).getAuthor());
+                    intent.putExtra("widgetBody", childList.get(mPosition).getTitle());
+                    intent.putExtra("widgetOnClick", "https://www.reddit.com" + childList.get(mPosition).getPermalink());
+                    intent.setAction(Constants.UPDATE_ACTION);
+                    sendBroadcast(intent);
+                } else { //update app widget with data from database
+                    String header = mDataViewModel.getAllPosts().getValue().get(mPosition).getHeader();
+                    String body = mDataViewModel.getAllPosts().getValue().get(mPosition).getTitle();
+                    String permalink = "https://www.reddit.com" + mDataViewModel.getAllPosts().getValue().get(mPosition).getPermalink();
+                    Intent intent = new Intent(this, RedditAppWidget.class);
+                    intent.putExtra("widgetHeader", header);
+                    intent.putExtra("widgetBody", body);
+                    intent.putExtra("widgetOnClick", permalink);
+                    intent.setAction(Constants.UPDATE_ACTION);
+                    sendBroadcast(intent);
+                }
             } else {
                 //hide action: remove item and notify data changed.
-                if(posts == null) { // if database is empty
+                if(childList != null && childList.size() > 0) { // if database is empty
                     childList.remove(mPosition);
                     homePageAdapter.notifyItemRemoved(mPosition);
                     homePageAdapter.notifyItemRangeChanged(mPosition, childList.size());
                 } else {
                     mDataViewModel.deletePostByName(fullName);
+                    homePageAdapter.notifyItemRemoved(mPosition);
+                    homePageAdapter.notifyDataSetChanged();
                 }
             }
         } else if(resultCode == 401){

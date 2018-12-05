@@ -34,9 +34,11 @@ public interface RedditDAO {
     LiveData<List<Comment>> getAllComments();
     @Query("SELECT * FROM post_table WHERE name == :name")
     Post retrievePostByName(String name);
-    @Query("SELECT * from post_table ORDER BY name ASC")
+    @Query("SELECT * FROM favorites_table WHERE name = :name")
+    Favorite retriveFavoriteByName(String name);
+    @Query("SELECT * from post_table")
     LiveData<List<Post>> getAllPosts();
-    @Query("SELECT * FROM favorites_table ORDER BY name ASC")
+    @Query("SELECT * FROM favorites_table")
     LiveData<List<Favorite>> getAllFavorites();
     @Query("DELETE FROM post_table WHERE name == :name")
     void deletePostByName(final String name);

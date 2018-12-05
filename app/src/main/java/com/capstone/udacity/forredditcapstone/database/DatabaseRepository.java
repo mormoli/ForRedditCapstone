@@ -58,6 +58,10 @@ public class DatabaseRepository {
 
     public void deleteAllFavorites() { new deleteAllFavoritesAsyncTask(mRedditDao).execute(); }
 
+    public Favorite retriveFavoriteByName(String name) {
+        return mRedditDao.retriveFavoriteByName(name);
+    }
+
     public void deletePostByName(String name){
         new deletePostByName(mRedditDao).execute(name);
     }
@@ -175,6 +179,25 @@ public class DatabaseRepository {
             return null;
         }
     }
+
+    /*private static class retriveFavoriteByNameTask extends AsyncTask<String, Void, Favorite>{
+        private RedditDAO mAsyncTaskDao;
+
+        retriveFavoriteByNameTask(RedditDAO redditDAO){
+            mAsyncTaskDao = redditDAO;
+        }
+
+        @Override
+        protected Favorite doInBackground(String... strings) {
+            Favorite favorite = mAsyncTaskDao.retriveFavoriteByName(strings[0]);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Favorite favorite) {
+            super.onPostExecute(favorite);
+        }
+    }*/
 
     private static class deletePostByName extends AsyncTask<String, Void, Void>{
         private RedditDAO mAsyncTaskDao;
