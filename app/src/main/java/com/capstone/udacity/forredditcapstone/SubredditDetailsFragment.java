@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -72,6 +73,9 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
             userAccessToken = sharedPreferences.getString("accessToken", null);
             userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
+        //setting receiver object for intent service class
+        mReceiver = new ResponseReceiver(new Handler());
+        mReceiver.setReceiver(this);
         //setHasOptionsMenu(true);
     }
 

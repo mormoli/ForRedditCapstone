@@ -2,5 +2,11 @@
 <resources>
     <bool name="is_tablet_layout">false</bool>
     <!-- card view -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="article_keylines">72dp</dimen>
     <!-- details-->
+    <dimen name="cards_button_width">32dp</dimen>
+    <dimen name="cards_button_height">32dp</dimen>
+
 </resources>

@@ -3,7 +3,6 @@ package com.capstone.udacity.forredditcapstone;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -15,7 +14,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
@@ -40,8 +38,6 @@ public class FavoritesActivity extends AppCompatActivity{
     Toolbar toolbar;
 
     private static final String TAG = FavoritesActivity.class.getSimpleName();
-    private String userAccessToken, userRefreshToken;
-    private SharedPreferences sharedPreferences;
     private List<FavoritesData> favoritesData;
     private List<Favorite> favorites;
     private FavoritesAdapter favoritesAdapter;
@@ -62,10 +58,6 @@ public class FavoritesActivity extends AppCompatActivity{
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
-        userAccessToken = sharedPreferences.getString("accessToken", null);
-        userRefreshToken = sharedPreferences.getString("refreshToken", null);
-
         if(getIntent() != null && getIntent().hasExtra("favoritesData")) {
             favoritesData = getIntent().getParcelableArrayListExtra("favoritesData");
             //recycler view adapter empty init.
@@ -82,34 +74,23 @@ public class FavoritesActivity extends AppCompatActivity{
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(url));
                         startActivity(intent);
-                        //also set in widget
-                        if(favoritesData != null && favoritesData.size() > 0 ){
-                            Intent widgetIntent = new Intent(getApplicationContext(), RedditAppWidget.class);
-                            if(!TextUtils.isEmpty(favoritesData.get(position).getBody())){//body exist so the data is t1 : comment
-                                String header = favoritesData.get(position).getAuthor() + " " + getTimeAgo(favoritesData.get(position).getCreatedUTC());
-                                widgetIntent.putExtra("widgetHeader", header);
-                                widgetIntent.putExtra("widgetBody", favoritesData.get(position).getBody());
-                                widgetIntent.putExtra("widgetOnClick", favoritesData.get(position).getPermalink());
-                            } else { // body not exist so the data is t3 : post
-                                String header = favoritesData.get(position).getTitle() + " ( " + favoritesData.get(position).getDomain() + ")";
-                                widgetIntent.putExtra("widgetHeader", header);
-                                String body = "submitted " + getTimeAgo(favoritesData.get(position).getCreatedUTC()) + " * by "
-                                        + favoritesData.get(position).getAuthor() + " " + favoritesData.get(position).getSubredditNamePrefixed();
-                                widgetIntent.putExtra("widgetBody", body);
-                                widgetIntent.putExtra("widgetOnClick", favoritesData.get(position).getPermalink());
-                            }
-                            widgetIntent.setAction(Constants.UPDATE_ACTION);
-                            sendBroadcast(widgetIntent);
+                        //also update widget
+                        Intent widgetIntent = new Intent(getApplicationContext(), RedditAppWidget.class);
+                        if(!TextUtils.isEmpty(favoritesData.get(position).getBody())){//body exist so the data is t1 : comment
+                            String header = favoritesData.get(position).getAuthor() + " " + getTimeAgo(favoritesData.get(position).getCreatedUTC());
+                            widgetIntent.putExtra("widgetHeader", header);
+                            widgetIntent.putExtra("widgetBody", favoritesData.get(position).getBody());
+                            widgetIntent.putExtra("widgetOnClick", favoritesData.get(position).getPermalink());
+                        } else { // body not exist so the data is t3 : post
+                            String header = favoritesData.get(position).getTitle() + " ( " + favoritesData.get(position).getDomain() + ")";
+                            widgetIntent.putExtra("widgetHeader", header);
+                            String body = "submitted " + getTimeAgo(favoritesData.get(position).getCreatedUTC()) + " * by "
+                                    + favoritesData.get(position).getAuthor() + " " + favoritesData.get(position).getSubredditNamePrefixed();
+                            widgetIntent.putExtra("widgetBody", body);
+                            widgetIntent.putExtra("widgetOnClick", favoritesData.get(position).getPermalink());
                         }
-                        /*Intent widgetIntent = new Intent(getApplicationContext(), RedditAppWidget.class);
-                        String header = mDataViewModel.getAllFavorites().getValue().get(position).getAuthor();
-                        String body = mDataViewModel.getAllFavorites().getValue().get(position).getTitle();
-                        String permalink = "https://www.reddit.com" + mDataViewModel.getAllFavorites().getValue().get(position).getPermalink();
-                        widgetIntent.putExtra("widgetHeader", header);
-                        widgetIntent.putExtra("widgetBody", body);
-                        widgetIntent.putExtra("widgetOnClick", permalink);
                         widgetIntent.setAction(Constants.UPDATE_ACTION);
-                        sendBroadcast(widgetIntent);*/
+                        sendBroadcast(widgetIntent);
                     }
                 }
             });

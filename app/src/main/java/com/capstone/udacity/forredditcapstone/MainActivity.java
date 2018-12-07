@@ -18,6 +18,8 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -35,7 +37,6 @@ import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.database.Converters;
 import com.capstone.udacity.forredditcapstone.database.DataViewModel;
-import com.capstone.udacity.forredditcapstone.database.Favorite;
 import com.capstone.udacity.forredditcapstone.database.Post;
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
@@ -49,6 +50,8 @@ import com.capstone.udacity.forredditcapstone.model.subreddits.SubListData;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.HomePageAdapter;
 import com.capstone.udacity.forredditcapstone.utils.TheRedditApi;
+import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,21 +75,21 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class MainActivity extends AppCompatActivity implements ResponseReceiver.OnResponse{
+public class MainActivity extends AppCompatActivity implements ResponseReceiver.OnResponse,
+        ConnectivityReceiver.ConnectivityReceiverListener{
     private static final String TAG = MainActivity.class.getSimpleName();
     private SharedPreferences sharedPreferences;
     @BindView(R.id.homepage_list_view)
     RecyclerView recyclerView;
-    //@BindView(R.id.search_list_fragment)
-    //Fragment searchFrameLayout;
+    @BindView(R.id.main_activity_layout)
+    CoordinatorLayout mCoordinatorLayout;
+
     HomePageAdapter homePageAdapter;
     private List<PostData> childList;
     private List<SearchData> searchData;
     private List<Post> posts;
-    private List<Favorite> favorites;
     private SearchView searchView;
     private String userAccessToken, userRefreshToken;
-    private Parcelable recyclerViewState;
     private int refreshCount = 0;
     private String searchString;
     private ResponseReceiver mReceiver;
@@ -94,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     private String action;
     private DataViewModel mDataViewModel;
     private String fullName;
+    private Menu mOptionsMenu;
+    private FirebaseAnalytics mFirebaseAnalytics;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,6 +106,16 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         ButterKnife.bind(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // Obtain the shared Tracker instance.
+        //AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        //mTracker = application.getDefaultTracker();
+
+        // Obtain the FirebaseAnalytics instance.
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        // Initialize Admob
+        // This needs to be done only once, ideally at app launch.
+        MobileAds.initialize(this, "ca-app-pub-3940256099942544~3347511713");
 
         sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
         //get tokens from shared preferences if value exist or not null
@@ -129,44 +144,23 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             }
         });
 
-        if (!isNetworkConnected()){ //while schedule job check's for connectivity for older api using this method
-            showMessageOnError();
-        } else {
-            if (getIntent() != null && getIntent().hasExtra("access")) {
-                Log.d(TAG, " getting user tokens. ");
-                userAccessToken = sharedPreferences.getString("accessToken", null);
-                userRefreshToken = sharedPreferences.getString("refreshToken", null);
-            }
-
-            if (savedInstanceState == null && TextUtils.isEmpty(userAccessToken)) {
-                Intent intent = new Intent(this, LoginActivity.class);
-                intent.putExtra("user", "new user");
-                startActivity(intent);
-            } /*else if(savedInstanceState != null){
-                childList = savedInstanceState.getParcelableArrayList("homepage");
-                populateUI(childList);
-                recyclerView.getViewTreeObserver()
-                        .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                            @Override
-                            public void onGlobalLayout() {
-                                //At this point the layout is complete and the
-                                //dimensions of recyclerView and any child views are known.
-                                //Remove listener after changed RecyclerView's height to prevent infinite loop
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                                    recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                                    recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
-                                } else {
-                                    recyclerView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                                    recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
-                                }
-                            }
-                        });
-            } */else {
-                //if(posts == null)
-                //get username and save to shared preferences for later use.
-                if(TextUtils.isEmpty(sharedPreferences.getString("username", null))) getUserInfo();
-            }
+        if (getIntent() != null && getIntent().hasExtra("access")) {
+            Log.d(TAG, " getting user tokens. ");
+            userAccessToken = sharedPreferences.getString("accessToken", null);
+            userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
+
+        if (savedInstanceState == null && TextUtils.isEmpty(userAccessToken)) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.putExtra("user", "new user");
+            startActivity(intent);
+        } else {
+            //if(posts == null)
+            //get username and save to shared preferences for later use.
+            if(TextUtils.isEmpty(sharedPreferences.getString("username", null))) getUserInfo();
+        }
+
+
     }
     //@see 'https://stackoverflow.com/questions/48527171/detect-connectivity-change-in-android-7-and-above-when-app-is-killed-in-backgrou/48666854#48666854'
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -217,13 +211,32 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 return true;
             case R.id.settings_logout:
                 //revoke token
+                Logout();
                 return true;
-            default:
-
         }
         return super.onOptionsItemSelected(item);
     }
-
+    /*
+    * Method that clears user tokens in shared preferences and opens login activity for user change.
+    * Note: reddit app revoke token not used because in future will add tokens in to database for
+    * faster change of users..
+    * */
+    public void Logout(){
+        //SharedPreferences object:
+        SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+        //Delete all the shared preferences:
+        preferencesEditor.clear();
+        //Apply the changes:
+        preferencesEditor.apply();
+        //open login activity for user change
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.putExtra("user", "new user");
+        startActivity(intent);
+    }
+    /*
+    * Method that retrieves user saved favorite list post/comments
+    * from reddit oauth end point: /user/{username}/saved
+    * */
     public void getUserFavorites(){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
@@ -272,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        mOptionsMenu = menu;
         // Retrieve the SearchView and plug it into SearchManager
         //@see 'https://developer.android.com/guide/topics/search/search-dialog#java'
         searchView = (SearchView) menu.findItem(R.id.settings_search).getActionView();
@@ -341,12 +355,21 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     assert response.body() != null;
                     Log.d(TAG, "response body string: "+ response.body().toString());
                     if(response.body().getData().getChildren().size() > 0) {
-                        for (int i=0; i<response.body().getData().getChildren().size(); i++)
+                        if(subListData.size() > 0) subListData.clear();
+                        for (int i=0; i<response.body().getData().getChildren().size(); i++) {
                             subListData.add(response.body().getData().getChildren().get(i).getData());
+                        }
                         openSubredditListView(subListData);
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string.subreddit_list_error), Toast.LENGTH_SHORT).show();
                     }
+                } else if(response.code() == 401){
+                    //try to refresh token.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+                    getAccessToken("refresh");
+                } else {
+                    //403 or something else happened, warn user.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -383,6 +406,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     assert response.body() != null;
                     if(response.body().getData().getChildren().size() > 0) {
                         if(searchData == null) searchData = new ArrayList<>();
+                        if(searchData.size() > 0) searchData.clear();
                         for(int i=0; i<response.body().getData().getChildren().size(); i++)
                             searchData.add(response.body().getData().getChildren().get(i).getSearchData());
                         //Log.d(TAG, " DATA : " + searchData.get(0).toString());
@@ -402,10 +426,23 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             }
         });
     }
+    /*
+    * Method that sends usage statistics to firebase
+    * */
+    public void sendFirebaseAnalytics(){
+        //send firebase analytics
+        Bundle bundle = new Bundle();
+        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "homepage");
+        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "user home");
+        bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "reddit user home");
+        mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+    }
     //https://www.getpostman.com
     //Postman app used to create returning values
     public void getHomePage(final String userAccessToken) {
+        //clear data in database
         mDataViewModel.deleteAllPosts();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -427,12 +464,14 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 assert response.body() != null;
                 if(childList == null) childList = new ArrayList<>();
                 if(response.code() == 200) {
+                    if(childList.size() > 0) childList.clear();
                     for(int i=0; i<response.body().getData().getChildren().size(); i++)
                         childList.add(response.body().getData().getChildren().get(i).getData());
                     //Log.d(TAG, " array title: " + childList.get(0).getData().getTitle());
                     Log.d(TAG, " data size: " + childList.size());
                     populateUI(childList);//populate main activity screen with post data.
                     populateDB(childList);//populate database with reddit posts data.
+                    sendFirebaseAnalytics();
                 } else { //probably error code is 401 --> try refresh the token then call method again
                     Log.d(TAG, " response code: " + response.code());
                     if(refreshCount < 2) getAccessToken("homepage");
@@ -452,6 +491,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     public void populateDB(List<PostData> childList){
         Log.d(TAG, "populate database method calls");
         if(posts == null) posts = new ArrayList<>();
+        if(posts.size() > 0) posts.clear();
         for(int i=0; i<childList.size(); i++){
             posts.add(Converters.fromRetrofitPojoToRoom(childList.get(i)));
         }
@@ -608,78 +648,6 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
             }
         });
     }
-
-    /*
-     * Job scheduler used to check connectivity because its for api level >= 21 leaving this method on activity.
-     * Android getAllNetworkInfo() is Deprecated.
-     * @see "https://stackoverflow.com/questions/32242384/android-getallnetworkinfo-is-deprecated-what-is-the-alternative"
-     * @return internet connection status.
-     * */
-    @SuppressWarnings("ConstantConditions") //may produce null exception on method !
-    private boolean isNetworkConnected(){
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-            Network[] networks = connectivityManager.getAllNetworks();
-            NetworkInfo networkInfo;
-            for(Network network : networks){
-                networkInfo = connectivityManager.getNetworkInfo(network);
-                if(networkInfo.getState().equals(NetworkInfo.State.CONNECTED)){
-                    return true;
-                }
-            }
-        } else {
-            if(connectivityManager != null){
-                //noinspection deprecation
-                NetworkInfo[] networkInfos = connectivityManager.getAllNetworkInfo();
-                if(networkInfos != null){
-                    for(NetworkInfo networkInfo : networkInfos){
-                        if(networkInfo.getState() == NetworkInfo.State.CONNECTED){
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-    /*
-     *   Toast
-     *   show related message to the user.
-     * */
-    private void showMessageOnError() {
-        //finish();
-        Toast.makeText(this, R.string.no_connection_error, Toast.LENGTH_SHORT).show();
-    }
-    /*@SuppressWarnings("ConstantConditions")
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(recyclerViewState != null)
-            recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        //restoring scrolling position
-        if(savedInstanceState != null)
-            recyclerViewState = savedInstanceState.getParcelable("scroll_state");
-        //childList = savedInstanceState.getParcelableArrayList("homepage");
-    }
-    @SuppressWarnings("ConstantConditions")
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("homepage", (ArrayList<? extends Parcelable>) childList);
-        //saving scrolling position of recycler view
-        if(recyclerView != null && childList != null){
-            //int lastVisiblePosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
-            recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
-            outState.putParcelable("scroll_state", recyclerViewState);
-            //outState.putInt("scrollPosition", lastVisiblePosition);
-        }
-    }*/
     /*
     * Method that retrieves server response code and take actions about em.
     * */
@@ -713,11 +681,11 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 }
             } else {
                 //hide action: remove item and notify data changed.
-                if(childList != null && childList.size() > 0) { // if database is empty
+                if(childList != null && childList.size() > 0) { // if list retrieved from network not null and has posts
                     childList.remove(mPosition);
                     homePageAdapter.notifyItemRemoved(mPosition);
                     homePageAdapter.notifyItemRangeChanged(mPosition, childList.size());
-                } else {
+                } else { // delete item from database.
                     mDataViewModel.deletePostByName(fullName);
                     homePageAdapter.notifyItemRemoved(mPosition);
                     homePageAdapter.notifyDataSetChanged();
@@ -730,6 +698,30 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         } else {
             //403 or something else happened, warn user.
             Toast.makeText(this,getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onNetworkConnectionChanged(boolean isConnected) {
+        Snackbar snackbar = Snackbar.make(mCoordinatorLayout, getString(R.string.no_network_message), Snackbar.LENGTH_INDEFINITE);
+        if(!isConnected){//Internet is disconnected or no active network found !
+            //disable menu items and search bar
+            mOptionsMenu.findItem(R.id.settings_homepage).setVisible(false);
+            mOptionsMenu.findItem(R.id.settings_subreddits).setVisible(false);
+            mOptionsMenu.findItem(R.id.settings_favorites).setVisible(false);
+            mOptionsMenu.findItem(R.id.settings_logout).setVisible(false);
+            searchView.setEnabled(false);
+            //show snackbar to the user about internet is not connected.
+            snackbar.setActionTextColor(getResources().getColor(R.color.colorAccent));
+            snackbar.show();
+        } else { // internet is connected
+            //enable options menu items and search bar
+            mOptionsMenu.findItem(R.id.settings_homepage).setVisible(true);
+            mOptionsMenu.findItem(R.id.settings_subreddits).setVisible(true);
+            mOptionsMenu.findItem(R.id.settings_favorites).setVisible(true);
+            mOptionsMenu.findItem(R.id.settings_logout).setVisible(true);
+            searchView.setEnabled(true);
+            snackbar.dismiss();
         }
     }
 }

@@ -27,6 +27,8 @@ public class CommentData implements Parcelable {
     private int createdUTC;
     @SerializedName("name")
     private String fullName;
+    @SerializedName("permalink")
+    private String permalink;
     //@SerializedName("replies")
     //private List<Replies> replies;
 
@@ -72,6 +74,14 @@ public class CommentData implements Parcelable {
         this.fullName = fullName;
     }
 
+    public String getPermalink() {
+        return permalink;
+    }
+
+    public void setPermalink(String permalink) {
+        this.permalink = permalink;
+    }
+
     /*public List<Replies> getReplies() {
         return replies;
     }
@@ -91,6 +101,7 @@ public class CommentData implements Parcelable {
         this.body = in.readString();
         this.createdUTC = in.readInt();
         this.fullName = in.readString();
+        this.permalink = in.readString();
     }
 
     @Override
@@ -100,5 +111,6 @@ public class CommentData implements Parcelable {
         dest.writeString(this.body);
         dest.writeInt(this.createdUTC);
         dest.writeString(this.fullName);
+        dest.writeString(this.permalink);
     }
 }

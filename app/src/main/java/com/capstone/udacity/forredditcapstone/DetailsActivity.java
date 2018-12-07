@@ -3,6 +3,7 @@ package com.capstone.udacity.forredditcapstone;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
@@ -60,6 +61,10 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
     private Parcelable recyclerViewState;
     private PostData postData;
     private ResponseReceiver mReceiver;
+    private static final int SECOND_MILLIS = 1000;
+    private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
+    private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
+    private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
     //view elements
     @BindView(R.id.details_list_view)
     RecyclerView recyclerView;
@@ -97,6 +102,11 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
         sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
         userAccessToken = sharedPreferences.getString("accessToken", null);
         userRefreshToken = sharedPreferences.getString("refreshToken", null);
+
+        //setting receiver object for intent service class
+        mReceiver = new ResponseReceiver(new Handler());
+        mReceiver.setReceiver(this);
+        //set data from intent
         if(getIntent().hasExtra("postId") && savedInstanceState == null){
             //PostData class return all objects for header
             postData = getIntent().getParcelableExtra("postData");
@@ -137,12 +147,14 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
             @Override
             public void onClick(View v) {
                 //hide button used
+                Toast.makeText(getApplicationContext(), "Please use home page to save/hide posts.", Toast.LENGTH_SHORT).show();
             }
         });
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //save button used
+                Toast.makeText(getApplicationContext(), "Please use home page to save/hide posts.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -166,6 +178,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
                 Log.d(TAG, " server response: " + response.toString());
                 assert response.body() != null;
                 if(commentList == null) commentList = new ArrayList<>();
+                if(commentList.size() > 0 ) commentList.clear();
                 if(response.code() == 200) {
                     //Log.d(TAG, " author : " + response.body().get(1).getData().getChildren().get(1).getData().getAuthor());
                     if(response.body().get(1).getData().getChildren().size() > 0) {
@@ -199,7 +212,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
         CommentsAdapter commentsAdapter = new CommentsAdapter(commentList, new CommentsAdapter.CommentListener() {
             @Override
             public void onSaveButtonClicked(View view, int position) {
-                //save comment to favorite database also send post to server in order to save user saved data.
+                //send post to server in order to save user saved data.
                 String fullName = commentList.get(position).getFullName();
                 Intent intent = new Intent(getApplicationContext(), RedditPostService.class);
                 intent.putExtra("receiver", mReceiver);
@@ -207,6 +220,14 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
                 intent.putExtra("name", fullName);
                 intent.setAction(Constants.API_SAVE);
                 startService(intent);
+                //set latest saved comment to the app widget
+                Intent widgetIntent = new Intent(getApplicationContext(), RedditAppWidget.class);
+                String header = commentList.get(position).getAuthor() + " " + getTimeAgo(commentList.get(position).getCreatedUTC());
+                widgetIntent.putExtra("widgetHeader", header);
+                widgetIntent.putExtra("widgetBody", commentList.get(position).getBody());
+                widgetIntent.putExtra("widgetOnClick", commentList.get(position).getPermalink());
+                widgetIntent.setAction(Constants.UPDATE_ACTION);
+                sendBroadcast(widgetIntent);
             }
 
             @Override
@@ -219,6 +240,35 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(commentsAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+    }
+
+    public static String getTimeAgo(long time){
+        if (time < 1000000000000L) {
+            // if timestamp given in seconds, convert to millis
+            time *= 1000;
+        }
+
+        long now = System.currentTimeMillis();
+        if (time > now || time <= 0) {
+            return null;
+        }
+
+        final long diff = now - time;
+        if (diff < MINUTE_MILLIS) {
+            return "just now";
+        } else if (diff < 2 * MINUTE_MILLIS) {
+            return "a minute ago";
+        } else if (diff < 50 * MINUTE_MILLIS) {
+            return diff / MINUTE_MILLIS + " minutes ago";
+        } else if (diff < 90 * MINUTE_MILLIS) {
+            return "an hour ago";
+        } else if (diff < 24 * HOUR_MILLIS) {
+            return diff / HOUR_MILLIS + " hours ago";
+        } else if (diff < 48 * HOUR_MILLIS) {
+            return "yesterday";
+        } else {
+            return diff / DAY_MILLIS + " days ago";
+        }
     }
 
     /*

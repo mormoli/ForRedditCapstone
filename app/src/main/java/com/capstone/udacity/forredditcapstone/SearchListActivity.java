@@ -186,6 +186,9 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
             case android.R.id.home:
                 NavUtils.navigateUpFromSameTask(this);
                 return true;
+            case R.id.settings_logout:
+                Logout();
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -220,6 +223,24 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
             }
         });
         return true;
+    }
+
+    /*
+     * Method that clears user tokens in shared preferences and opens login activity for user change.
+     * Note: reddit app revoke token not used because in future will add tokens in to database for
+     * faster change of users..
+     * */
+    public void Logout(){
+        //SharedPreferences object:
+        SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+        //Delete all the shared preferences:
+        preferencesEditor.clear();
+        //Apply the changes:
+        preferencesEditor.apply();
+        //open login activity for user change
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.putExtra("user", "new user");
+        startActivity(intent);
     }
 
     /*

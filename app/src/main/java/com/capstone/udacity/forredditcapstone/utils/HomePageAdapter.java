@@ -36,10 +36,6 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
         this.buttonsListener = buttonsListener;
     }
 
-    public HomePageAdapter(List<Post> posts, ButtonsListener buttonsListener, boolean isDatabase){
-
-    }
-
     public class HomePageHolder extends RecyclerView.ViewHolder{
         @BindView(R.id.card_view)
         MaterialCardView materialCardView;
@@ -133,12 +129,6 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             holder.points.setText(ups);
             comments = numberFormat(childList.get(position).getNumComments()) + " comments";
             holder.comments.setText(comments);
-            //String createdUTC = getTimeAgo(childList.get(position).getCreatedUTC());
-            //String fullname, String header, String thumbnail, String author, String title,
-            // String selftext, String permalink, String ups, String comments, String createdUTC
-            /*holder.insertPostsIntoDB(new Post(childList.get(position).getFullName(), header, childList.get(position).getThumbnail(),
-                    childList.get(position).getAuthor(), childList.get(position).getTitle(), childList.get(position).getSelftext(),
-                    childList.get(position).getPermalink(), ups, comments, createdUTC));*/
         } else { //populate ui from database
             holder.headerText.setText(posts.get(position).getHeader());
             if(!TextUtils.isEmpty(posts.get(position).getThumbnail())){

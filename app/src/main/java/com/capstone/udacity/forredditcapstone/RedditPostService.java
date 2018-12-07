@@ -58,29 +58,9 @@ public class RedditPostService extends IntentService {
                     String srName = intent.getStringExtra("srName");
                     onConfirmClicked(userAccessToken, action, false, srName);
                     break;
-                /*case Constants.UPDATE_ACTION :
-                    String header = intent.getStringExtra("widgetHeader");
-                    String body = intent.getStringExtra("widgetBody");
-                    String link = intent.getStringExtra("widgetOnClick");
-                    onUpdateWidgetCalled(header, body, link);
-                    break;*/
             }
         }
     }
-    /*
-    * Method that update app widget
-    * */
-    /*public void onUpdateWidgetCalled(String header, String body, String link){
-        Intent intent = new Intent(this, RedditAppWidget.class);
-        intent.setAction("android.appwidget.action.APPWIDGET_UPDATE");
-        intent.putExtra("widgetHeader", header);
-        intent.putExtra("widgetBody", body);
-        intent.putExtra("widgetOnClick", link);
-        int[] ids = AppWidgetManager.getInstance(getApplication())
-                .getAppWidgetIds(new ComponentName(getApplication(), RedditAppWidget.class));
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-        sendBroadcast(intent);
-    }*/
     /*
     * Method that handles user hide button click on reddit posts
     * */

@@ -8,7 +8,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
@@ -41,6 +40,9 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
     private SharedPreferences sharedPreferences;
     private List<SubListData> subListData;
     private List<PostData> childList;
+    private SubredditListFragment subredditListFragment;
+    //private InterstitialAd mInterstitialAd;
+    private boolean mTwoPane;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,23 +58,29 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         userAccessToken = sharedPreferences.getString("accessToken", null);
         userRefreshToken = sharedPreferences.getString("refreshToken", null);
 
-        /*if(savedInstanceState != null){
-            subListData = savedInstanceState.getParcelableArrayList("listData");
-        }*/
+        //check if its tablet layout
+        mTwoPane = getResources().getBoolean(R.bool.is_tablet_layout);
+        if(savedInstanceState == null) {
+            if (getIntent() != null && getIntent().hasExtra("listData")) {
+                Log.d("SubredditListFragment: ", "initializing fragment IN ACTIVITY");
+                subListData = getIntent().getParcelableArrayListExtra("listData");
+                subredditListFragment = SubredditListFragment.newInstance(subListData);
+                //subredditListFragment.setArguments(bundle);
+                subredditListFragment.setOnItemSelect(this);
+                //Begin Transaction
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.add(R.id.subreddit_list_layout, subredditListFragment, "listFragment");
+                fragmentTransaction.commit();
 
-        if(getIntent() != null && getIntent().hasExtra("listData")){
-            subListData = getIntent().getParcelableArrayListExtra("listData");
-            Bundle bundle = new Bundle();
-            bundle.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
-            SubredditListFragment subredditListFragment = new SubredditListFragment();
-            subredditListFragment.setArguments(bundle);
-            subredditListFragment.setOnItemSelect(this);
-            //Begin Transaction
-            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.add(R.id.subreddit_list_layout, subredditListFragment);
-            fragmentTransaction.commit();
+                if (mTwoPane) { // initialization with first item
+                    getSubredditHomePage(0);
+                }
+            }
+        } else {
+            subredditListFragment = (SubredditListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "listFragment");
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -84,7 +92,7 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         return super.onOptionsItemSelected(item);
     }
 
-    public void getSubredditHomePage(int position){
+    public void getSubredditHomePage(final int position){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_OAUTH_URL)
                 .addConverterFactory(GsonConverterFactory.create())
@@ -106,11 +114,13 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
 
                 if(response.code() == 200){
                     if(childList == null) childList = new ArrayList<>();
+                    if(childList.size() > 0 ) childList.clear();
                     assert response.body() != null;
                     if(response.body().getData().getChildren().size() > 0) {
                         for (int i = 0; i < response.body().getData().getChildren().size(); i++)
                             childList.add(response.body().getData().getChildren().get(i).getData());
-                        openDetailsFragment(childList);
+                        if(!mTwoPane)openDetailsFragment(childList); //its not tablet layout
+                        else addDetailsFragment(childList, position); //its tablet layout
                     }
                 } else {
                     Log.d(TAG, " server response: " + response.code());
@@ -139,6 +149,16 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         fragmentTransaction.commit();
     }
 
+    public void addDetailsFragment(List<PostData> childList, int position){
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("postData", (ArrayList<? extends Parcelable>) childList);
+        SubredditDetailsFragment subredditDetailsFragment = new SubredditDetailsFragment();
+        subredditDetailsFragment.setArguments(bundle);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.subreddit_details_layout, subredditDetailsFragment)
+                .commit();
+    }
+
     @Override
     public void OnCardItemSelected(int position) {
         Log.d(TAG, "clicked: " + position);
@@ -154,15 +174,16 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        /*if(savedInstanceState != null) {
+        if(savedInstanceState != null) {
             subListData = savedInstanceState.getParcelableArrayList("listData");
-        }*/
+        }
     }
 
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
+        //outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
+        getSupportFragmentManager().putFragment(outState, "listFragment", subredditListFragment);
     }
 }

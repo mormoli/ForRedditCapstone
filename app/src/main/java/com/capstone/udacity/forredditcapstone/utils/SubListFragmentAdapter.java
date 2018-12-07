@@ -3,7 +3,6 @@ package com.capstone.udacity.forredditcapstone.utils;
 import android.support.annotation.NonNull;
 import android.support.design.button.MaterialButton;
 import android.support.design.card.MaterialCardView;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -87,6 +86,11 @@ public class SubListFragmentAdapter extends RecyclerView.Adapter<SubListFragment
             super(view);
             ButterKnife.bind(this, view);
         }
+    }
+
+    public void setSubListData(List<SubListData> subListData){
+        this.subListData = subListData;
+        notifyDataSetChanged();
     }
 
     public interface OnItemClicked{

@@ -22,6 +22,9 @@ import com.capstone.udacity.forredditcapstone.model.SubredditList;
 import com.capstone.udacity.forredditcapstone.model.subreddits.SubListData;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 import com.capstone.udacity.forredditcapstone.utils.SubListFragmentAdapter;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,7 +43,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class SubredditListFragment extends Fragment implements ResponseReceiver.OnResponse{
     private static final String TAG = SubredditListFragment.class.getSimpleName();
     private RecyclerView recyclerView;
-    private List<SubListData> subListData = new ArrayList<>();
+    private List<SubListData> subListData;
     private SubListFragmentAdapter subListFragmentAdapter;
     private OnLayoutCardSelected onLayoutCardSelected;
     private Parcelable recyclerViewState;
@@ -48,6 +51,8 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     private String userAccessToken, userRefreshToken;
     private String mActionText;
     private SharedPreferences sharedPreferences;
+    //@see 'https://developers.google.com/admob/android/interstitial'
+    private InterstitialAd mInterstitialAd;
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -67,6 +72,8 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         if (getArguments() != null){
+            Log.d(TAG, "onCreate getting list!!!");
+            if(subListData == null) subListData = new ArrayList<>();
             subListData = getArguments().getParcelableArrayList("listData");
         }
         if(getActivity() != null) {
@@ -81,12 +88,28 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_subreddit_list, container, false);
+        // Initialize Admob
+        mInterstitialAd = new InterstitialAd(view.getContext());
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+        mInterstitialAd.setAdListener(new AdListener(){
+            @Override
+            public void onAdClosed() {
+                super.onAdClosed();
+            }
+        });
+        if(getArguments() != null){
+            Log.d(TAG, "onCreateView getting list!!!");
+            if(subListData == null) subListData = new ArrayList<>();
+            subListData = getArguments().getParcelableArrayList("listData");
+        }
         recyclerView = view.findViewById(R.id.subreddit_list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         subListFragmentAdapter = new SubListFragmentAdapter(subListData);
         recyclerView.setAdapter(subListFragmentAdapter);
-        if(getActivity() != null)
+        if (getActivity() != null)
             recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL));
+
         return view;
     }
     // This event is triggered soon after onCreateView().
@@ -95,6 +118,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         subListFragmentAdapter.setOnClick(new SubListFragmentAdapter.OnItemClicked() {
             @Override
             public void onItemClick(View view, int position) {
@@ -128,6 +152,12 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
             @Override
             public void onLayoutClick(int position) {
                 Log.d(TAG, "clicked: " + position);
+                //To show an interstitial ad first checking if its loaded
+                if (mInterstitialAd.isLoaded()){
+                    mInterstitialAd.show();
+                } else {
+                    Toast.makeText(getActivity(), "Admob is not ready", Toast.LENGTH_SHORT).show();
+                }
                 onLayoutCardSelected.OnCardItemSelected(position);
             }
         });
@@ -136,19 +166,36 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Bundle bundle = getArguments();
-        if(bundle != null){
-            subListData = bundle.getParcelableArrayList("listData");
-        }
-        if(savedInstanceState != null){
-            recyclerViewState = savedInstanceState.getParcelable("scroll_state");
+        if(savedInstanceState != null)
+            Log.d(TAG, "onActivityCreated list size: " + savedInstanceState.getParcelableArrayList("listData").size());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(subListData.size() > 0) {
+            Log.d(TAG, "onResume restoring!!!");
+            subListFragmentAdapter = new SubListFragmentAdapter(subListData);
+            recyclerView.setAdapter(subListFragmentAdapter);
+            subListFragmentAdapter.notifyDataSetChanged();
+        } else {
+            Log.d(TAG, "onResume restoring with arguments!!!");
+            if(getArguments() != null) {
+                subListData = getArguments().getParcelableArrayList("listData");
+                Log.d(TAG, "onResume arguments size : " + getArguments().getParcelableArrayList("listData").size());
+            }
+            subListFragmentAdapter = new SubListFragmentAdapter(subListData);
+            recyclerView.setAdapter(subListFragmentAdapter);
+            subListFragmentAdapter.notifyDataSetChanged();
         }
     }
+
     @SuppressWarnings("ConstantConditions")
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         if(recyclerView != null && subListData != null) {
+            Log.d(TAG, "SAVING DATA onInstanceState!!!");
             outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
             recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
             outState.putParcelable("scroll_state", recyclerViewState);

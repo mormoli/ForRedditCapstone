@@ -19,17 +19,19 @@ import com.capstone.udacity.forredditcapstone.utils.Constants;
  */
 public class RedditAppWidget extends AppWidgetProvider {
     private static final String TAG = RedditAppWidget.class.getSimpleName();
-
+    private DataViewModel mDataViewModel;
+    //update happens on receive method no need to call this method.
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        Log.d(TAG, "updateAppWidget called.");
+        //Log.d(TAG, "updateAppWidget called.");
         //CharSequence widgetText = context.getString(R.string.appwidget_text);
         // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.reddit_app_widget);
+
+        //RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.reddit_app_widget);
         //views.setTextViewText(R.id.appwidget_header_text, widgetText);
 
         // Instruct the widget manager to update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+        //appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     @Override
