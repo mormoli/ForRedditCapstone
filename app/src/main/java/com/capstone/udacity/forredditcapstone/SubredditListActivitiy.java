@@ -76,9 +76,9 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
                     getSubredditHomePage(0);
                 }
             }
-        } else {
+        } /*else {
             subredditListFragment = (SubredditListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "listFragment");
-        }
+        }*/
     }
 
     @Override
@@ -183,7 +183,7 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
-        getSupportFragmentManager().putFragment(outState, "listFragment", subredditListFragment);
+        outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
+        //getSupportFragmentManager().putFragment(outState, "listFragment", subredditListFragment);
     }
 }

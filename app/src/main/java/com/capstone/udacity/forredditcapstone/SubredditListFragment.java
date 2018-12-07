@@ -98,11 +98,11 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
                 super.onAdClosed();
             }
         });
-        if(getArguments() != null){
+        /*if(getArguments() != null){
             Log.d(TAG, "onCreateView getting list!!!");
             if(subListData == null) subListData = new ArrayList<>();
             subListData = getArguments().getParcelableArrayList("listData");
-        }
+        }*/
         recyclerView = view.findViewById(R.id.subreddit_list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         subListFragmentAdapter = new SubListFragmentAdapter(subListData);
@@ -170,7 +170,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
             Log.d(TAG, "onActivityCreated list size: " + savedInstanceState.getParcelableArrayList("listData").size());
     }
 
-    @Override
+    /*@Override
     public void onResume() {
         super.onResume();
         if(subListData.size() > 0) {
@@ -188,7 +188,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
             recyclerView.setAdapter(subListFragmentAdapter);
             subListFragmentAdapter.notifyDataSetChanged();
         }
-    }
+    }*/
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -255,7 +255,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public void onDetach() {
         super.onDetach();
-        if(subListData != null) subListData.clear();
+        //if(subListData != null) subListData.clear();
     }
 
     @Override

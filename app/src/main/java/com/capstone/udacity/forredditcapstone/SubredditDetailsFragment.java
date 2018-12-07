@@ -135,7 +135,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
         super.onActivityCreated(savedInstanceState);
         Bundle bundle = getArguments();
         if(bundle != null){
-            postData = bundle.getParcelableArrayList("listData");
+            postData = bundle.getParcelableArrayList("postData");
         }
     }
 
@@ -198,7 +198,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
     @Override
     public void onDetach() {
         super.onDetach();
-        if(postData != null) postData.clear();
+        //if(postData != null) postData.clear();
     }
 
     @Override
