@@ -5,14 +5,13 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 
 public class ResponseReceiver extends ResultReceiver {
-    private static final String TAG = ResultReceiver.class.getSimpleName();
+    //private static final String TAG = ResultReceiver.class.getSimpleName();
     private OnResponse mReceiver;
     /**
      * Create a new ResultReceive to receive results.  Your
      * {@link #onReceiveResult} method will be called from the thread running
      * <var>handler</var> if given, or from an arbitrary thread if null.
      *
-     * @param handler
      */
     public ResponseReceiver(Handler handler) {
         super(handler);

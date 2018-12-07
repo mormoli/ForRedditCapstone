@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,10 +36,9 @@ import okhttp3.RequestBody;
 import static android.content.Context.MODE_PRIVATE;
 
 public class SubredditDetailsFragment extends Fragment implements ResponseReceiver.OnResponse{
-    private static final String TAG = SubredditDetailsFragment.class.getSimpleName();
+    //private static final String TAG = SubredditDetailsFragment.class.getSimpleName();
     private RecyclerView recyclerView;
     private List<PostData> postData;
-    private Parcelable recyclerViewState;
     private ResponseReceiver mReceiver;
     private String userAccessToken, userRefreshToken;
     private String mActionText;
@@ -145,7 +143,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
      * */
     private void getAccessToken(){
         OkHttpClient client = new OkHttpClient();
-        Log.d(TAG, "getAccessToken called.");
+        //Log.d(TAG, "getAccessToken called.");
         String authString = Constants.CLIENT_ID + ":";
         String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
 
@@ -161,7 +159,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                Log.e(TAG, " getAccessToken error: " + e.getMessage());
+                //Log.e(TAG, " getAccessToken error: " + e.getMessage());
             }
 
             @Override
@@ -169,7 +167,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
                 assert response.body() != null;
                 String json = response.body().string();
 
-                JSONObject data = null;
+                JSONObject data;
 
                 try {
                     data = new JSONObject(json);
@@ -180,8 +178,8 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
                     editor.putString("accessToken", userAccessToken);
                     //editor.putString("refreshToken", userRefreshToken);
                     editor.apply();
-                    Log.d(TAG, "Access token: " + userAccessToken);
-                    Log.d(TAG, "Refresh token: " + userRefreshToken);
+                    //Log.d(TAG, "Access token: " + userAccessToken);
+                    //Log.d(TAG, "Refresh token: " + userRefreshToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -207,6 +205,7 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
             Toast.makeText(getActivity(), mActionText + " successfully.", Toast.LENGTH_SHORT).show();
             if(mActionText.equals("saved")){
                 //save action: save post to database
+                Toast.makeText(getActivity(), "Saved", Toast.LENGTH_SHORT).show();
             } else {
                 //hide action: remove item and notify data changed.
                 postData.remove(mPosition);

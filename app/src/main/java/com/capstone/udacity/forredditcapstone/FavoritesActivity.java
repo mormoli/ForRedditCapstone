@@ -15,7 +15,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.MenuItem;
 
 import com.capstone.udacity.forredditcapstone.database.Converters;
@@ -37,7 +36,7 @@ public class FavoritesActivity extends AppCompatActivity{
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    private static final String TAG = FavoritesActivity.class.getSimpleName();
+    //private static final String TAG = FavoritesActivity.class.getSimpleName();
     private List<FavoritesData> favoritesData;
     private List<Favorite> favorites;
     private FavoritesAdapter favoritesAdapter;
@@ -107,10 +106,10 @@ public class FavoritesActivity extends AppCompatActivity{
             public void onChanged(@Nullable List<Favorite> favorites) {
                 if(favorites == null || favorites.size() == 0 ){
                     // No data in database
-                    Log.d(TAG, "database empty first initialization.");
+                    //Log.d(TAG, "database empty first initialization.");
                     populateDB();
                 } else {
-                    Log.d(TAG, "database set triggered.");
+                    //Log.d(TAG, "database set triggered.");
                     favoritesAdapter.setFavorites(favorites);
                 }
             }
@@ -120,7 +119,7 @@ public class FavoritesActivity extends AppCompatActivity{
     * Method that populates Room Favorite database
     * */
     public void populateDB(){
-        Log.d(TAG, "populate database method calls");
+        //Log.d(TAG, "populate database method calls");
         if( favoritesData != null && favoritesData.size() > 0 ){
             if(favorites == null) favorites = new ArrayList<>();
             for(int i=0; i<favoritesData.size(); i++){

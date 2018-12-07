@@ -16,7 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
@@ -54,7 +53,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DetailsActivity extends AppCompatActivity implements ResponseReceiver.OnResponse{
-    private static final String TAG = DetailsActivity.class.getSimpleName();
+    //private static final String TAG = DetailsActivity.class.getSimpleName();
     private String userAccessToken, userRefreshToken, subredditName, postId;
     private String customizedComments, customizedPoints;
     private SharedPreferences sharedPreferences;
@@ -175,16 +174,16 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
         call.enqueue(new Callback<List<CommentList>>() {
             @Override
             public void onResponse(@NonNull Call<List<CommentList>> call, @NonNull Response<List<CommentList>> response) {
-                Log.d(TAG, " server response: " + response.toString());
+                //Log.d(TAG, " server response: " + response.toString());
                 assert response.body() != null;
                 if(commentList == null) commentList = new ArrayList<>();
                 if(commentList.size() > 0 ) commentList.clear();
                 if(response.code() == 200) {
                     //Log.d(TAG, " author : " + response.body().get(1).getData().getChildren().get(1).getData().getAuthor());
                     if(response.body().get(1).getData().getChildren().size() > 0) {
-                        Log.d(TAG, " Server Response Body: " + response.body().toString());
-                        Log.d(TAG, " Comment Author: " + response.body().get(1).getData().getChildren().get(0).getData().getAuthor());
-                        Log.d(TAG, " Comment :" + response.body().get(1).getData().getChildren().get(0).getData().getBody());
+                        //Log.d(TAG, " Server Response Body: " + response.body().toString());
+                        //Log.d(TAG, " Comment Author: " + response.body().get(1).getData().getChildren().get(0).getData().getAuthor());
+                        //Log.d(TAG, " Comment :" + response.body().get(1).getData().getChildren().get(0).getData().getBody());
                         // size() - 1 last item is null.
                         for (int i = 0; i < response.body().get(1).getData().getChildren().size() - 1; i++)
                             commentList.add(response.body().get(1).getData().getChildren().get(i).getData());
@@ -192,7 +191,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
                         populateListView();
                     }
                 } else {
-                    Log.d(TAG, " response code: " + response.code());
+                    //Log.d(TAG, " response code: " + response.code());
                     if(refreshCount < 2) getAccessToken("comments");
                     else Toast.makeText(getApplicationContext(), getString(R.string.token_refresh_error), Toast.LENGTH_LONG).show();
                 }
@@ -201,7 +200,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
 
             @Override
             public void onFailure(@NonNull Call<List<CommentList>> call, @NonNull Throwable t) {
-                Log.e(TAG, "Retrofit Error : " + t.getMessage());
+                //Log.e(TAG, "Retrofit Error : " + t.getMessage());
             }
         });
     }
@@ -278,7 +277,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
     private void getAccessToken(final String callerMethod){
         refreshCount++;
         OkHttpClient client = new OkHttpClient();
-        Log.d(TAG, "getAccessToken called.");
+        //Log.d(TAG, "getAccessToken called.");
         String authString = Constants.CLIENT_ID + ":";
         String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
 
@@ -294,7 +293,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                Log.e(TAG, " getAccessToken error: " + e.getMessage());
+                //Log.e(TAG, " getAccessToken error: " + e.getMessage());
             }
 
             @Override
@@ -302,7 +301,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
                 assert response.body() != null;
                 String json = response.body().string();
 
-                JSONObject data = null;
+                JSONObject data;
 
                 try {
                     data = new JSONObject(json);
@@ -314,8 +313,8 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
                     //editor.putString("refreshToken", userRefreshToken);
                     editor.apply();
                     if(callerMethod.equals("comments"))getPostComments();
-                    Log.d(TAG, "Access token: " + userAccessToken);
-                    Log.d(TAG, "Refresh token: " + userRefreshToken);
+                    //Log.d(TAG, "Access token: " + userAccessToken);
+                    //Log.d(TAG, "Refresh token: " + userRefreshToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

@@ -18,7 +18,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,7 +57,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    private static final String TAG = SearchListActivity.class.getSimpleName();
+    //private static final String TAG = SearchListActivity.class.getSimpleName();
     private String userAccessToken, userRefreshToken;
     private SharedPreferences sharedPreferences;
     private Parcelable recyclerViewState;
@@ -95,8 +94,8 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
             searchFragmentAdapter.setOnClick(new SearchFragmentAdapter.OnItemClicked() {
                 @Override
                 public void onItemClick(View view, int position) {
-                    Log.d(TAG, " button clicked: " + ((Button) view).getText().toString());
-                    Log.d(TAG, " subreddit name : " + searchData.get(position).getDisplayNamePrefixed());
+                    //Log.d(TAG, " button clicked: " + ((Button) view).getText().toString());
+                    //Log.d(TAG, " subreddit name : " + searchData.get(position).getDisplayNamePrefixed());
                     String name = ((Button) view).getText().toString();
                     if(name.equals("subscribe")){
                         String action = "sub";
@@ -136,7 +135,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
      * */
     private void getAccessToken(){
         OkHttpClient client = new OkHttpClient();
-        Log.d(TAG, "getAccessToken called.");
+        //Log.d(TAG, "getAccessToken called.");
         String authString = Constants.CLIENT_ID + ":";
         String encodedAuthString = Base64.encodeToString(authString.getBytes(), Base64.NO_WRAP);
 
@@ -152,7 +151,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
         client.newCall(request).enqueue(new okhttp3.Callback() {
             @Override
             public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                Log.e(TAG, " getAccessToken error: " + e.getMessage());
+                //Log.e(TAG, " getAccessToken error: " + e.getMessage());
             }
 
             @Override
@@ -171,8 +170,8 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                     editor.putString("accessToken", userAccessToken);
                     //editor.putString("refreshToken", userRefreshToken);
                     editor.apply();
-                    Log.d(TAG, "Access token: " + userAccessToken);
-                    Log.d(TAG, "Refresh token: " + userRefreshToken);
+                    //Log.d(TAG, "Access token: " + userAccessToken);
+                    //Log.d(TAG, "Refresh token: " + userRefreshToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -208,7 +207,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
             public boolean onQueryTextSubmit(String s) {
                 if(s.length() >= 3){
                     searchString = s;
-                    Log.d(TAG, " Search String: " + searchString);
+                    //Log.d(TAG, " Search String: " + searchString);
                     getSearchResults();
                 } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.search_text_error), Toast.LENGTH_LONG).show();
@@ -264,7 +263,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
         call.enqueue(new Callback<SearchList>() {
             @Override
             public void onResponse(@NonNull Call<SearchList> call, @NonNull Response<SearchList> response) {
-                Log.d(TAG, " server response: " + response.toString());
+                //Log.d(TAG, " server response: " + response.toString());
 
                 if(response.code() == 200){
                     assert response.body() != null;
@@ -279,14 +278,19 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                     } else{
                         Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
                     }
+                } else if(response.code() == 401){
+                    //try to refresh token.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
+                    getAccessToken();
                 } else {
-                    Log.d(TAG, "returned code : " + response.code());
+                    //403 or something else happened, warn user.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<SearchList> call, @NonNull Throwable t) {
-                Log.e(TAG, " retrofit error: " + t.getMessage());
+                //Log.e(TAG, " retrofit error: " + t.getMessage());
             }
         });
     }

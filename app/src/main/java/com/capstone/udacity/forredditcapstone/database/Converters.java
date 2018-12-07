@@ -1,7 +1,5 @@
 package com.capstone.udacity.forredditcapstone.database;
 
-import android.arch.persistence.room.TypeConverter;
-
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.favorites.FavoritesData;
 
@@ -10,7 +8,8 @@ public class Converters {
     private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
-
+    //Below methods used to convert retrofit pojo classes in to room database class
+    //in order to save data to the database.
     public static Post fromRetrofitPojoToRoom(PostData postData){
         String createdUTC = getTimeAgo(postData.getCreatedUTC());
         String ups = numberFormat(postData.getUps()) + " points";
@@ -31,11 +30,6 @@ public class Converters {
         return new Favorite(postData.getTitle(), postData.getSubredditName(), "", postData.getSubredditNamePrefixed(), postData.getFullName(),
                 postData.getAuthor(), postData.getPermalink(), postData.getCreatedUTC(), "", "");
     }
-
-    /*public static Favorite fromPostToFavoriteData(Post post){
-        return new Favorite(post.getHeader(), post.getSubredditName(), "", "", post.getFullname(), post.getAuthor(),
-                post.getPermalink(), 1, )
-    }*/
 
     public static String getTimeAgo(long time){
         if (time < 1000000000000L) {

@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.Toast;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class NetworkSchedulerService extends JobService implements ConnectivityReceiver.ConnectivityReceiverListener{

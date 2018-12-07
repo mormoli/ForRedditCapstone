@@ -9,8 +9,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.capstone.udacity.forredditcapstone.model.PostData;
 import com.capstone.udacity.forredditcapstone.model.SubredditList;
@@ -35,13 +35,10 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    private static final String TAG = SubredditListActivitiy.class.getSimpleName();
-    private String userAccessToken, userRefreshToken;
-    private SharedPreferences sharedPreferences;
+    //private static final String TAG = SubredditListActivitiy.class.getSimpleName();
+    private String userAccessToken;
     private List<SubListData> subListData;
     private List<PostData> childList;
-    private SubredditListFragment subredditListFragment;
-    //private InterstitialAd mInterstitialAd;
     private boolean mTwoPane;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +51,17 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(Constants.APP_PREFS_NAME, MODE_PRIVATE);
         userAccessToken = sharedPreferences.getString("accessToken", null);
-        userRefreshToken = sharedPreferences.getString("refreshToken", null);
+        //String userRefreshToken = sharedPreferences.getString("refreshToken", null);
 
         //check if its tablet layout
         mTwoPane = getResources().getBoolean(R.bool.is_tablet_layout);
         if(savedInstanceState == null) {
             if (getIntent() != null && getIntent().hasExtra("listData")) {
-                Log.d("SubredditListFragment: ", "initializing fragment IN ACTIVITY");
+                //Log.d("SubredditListFragment: ", "initializing fragment IN ACTIVITY");
                 subListData = getIntent().getParcelableArrayListExtra("listData");
-                subredditListFragment = SubredditListFragment.newInstance(subListData);
+                SubredditListFragment subredditListFragment = SubredditListFragment.newInstance(subListData);
                 //subredditListFragment.setArguments(bundle);
                 subredditListFragment.setOnItemSelect(this);
                 //Begin Transaction
@@ -76,9 +73,7 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
                     getSubredditHomePage(0);
                 }
             }
-        } /*else {
-            subredditListFragment = (SubredditListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "listFragment");
-        }*/
+        }
     }
 
     @Override
@@ -110,7 +105,7 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         call.enqueue(new Callback<SubredditList>() {
             @Override
             public void onResponse(@NonNull Call<SubredditList> call, @NonNull Response<SubredditList> response) {
-                Log.d(TAG, " server response: " + response.toString());
+                //Log.d(TAG, " server response: " + response.toString());
 
                 if(response.code() == 200){
                     if(childList == null) childList = new ArrayList<>();
@@ -120,24 +115,30 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
                         for (int i = 0; i < response.body().getData().getChildren().size(); i++)
                             childList.add(response.body().getData().getChildren().get(i).getData());
                         if(!mTwoPane)openDetailsFragment(childList); //its not tablet layout
-                        else addDetailsFragment(childList, position); //its tablet layout
+                        else addDetailsFragment(childList); //its tablet layout
                     }
+                } else if(response.code() == 401){
+                    //try to refresh token.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.d(TAG, " server response: " + response.code());
+                    //403 or something else happened, warn user.
+                    Toast.makeText(getApplicationContext(),getString(R.string.unknown_access_error), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<SubredditList> call, @NonNull Throwable t) {
-                Log.d(TAG, " retrofit error: " + t.getMessage());
+                //Log.d(TAG, " retrofit error: " + t.getMessage());
             }
         });
     }
-
+    /*
+    * Method that replace list with subreddit homepage
+    * */
     public void openDetailsFragment(List<PostData> childList){
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("postData", (ArrayList<? extends Parcelable>) childList);
-        SubredditDetailsFragment subredditDetailsFragment = new SubredditDetailsFragment();
+        SubredditDetailsFragment subredditDetailsFragment = SubredditDetailsFragment.newInstance(childList);
         subredditDetailsFragment.setArguments(bundle);
         //Begin the transaction
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
@@ -148,20 +149,25 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
         //Commit the transaction
         fragmentTransaction.commit();
     }
-
-    public void addDetailsFragment(List<PostData> childList, int position){
+    /*
+    * Method that adds subreddit homepage with user favorited subreddit list if its tablet layout
+    * */
+    public void addDetailsFragment(List<PostData> childList){
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList("postData", (ArrayList<? extends Parcelable>) childList);
-        SubredditDetailsFragment subredditDetailsFragment = new SubredditDetailsFragment();
+        SubredditDetailsFragment subredditDetailsFragment = SubredditDetailsFragment.newInstance(childList);
         subredditDetailsFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.subreddit_details_layout, subredditDetailsFragment)
                 .commit();
     }
-
+    /*
+    * Interface method to communicate with fragments
+    * on click opens corresponding subbredit's homepage
+    * */
     @Override
     public void OnCardItemSelected(int position) {
-        Log.d(TAG, "clicked: " + position);
+        //Log.d(TAG, "clicked: " + position);
         getSubredditHomePage(position);
     }
 
@@ -184,6 +190,5 @@ public class SubredditListActivitiy extends AppCompatActivity implements Subredd
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("listData", (ArrayList<? extends Parcelable>) subListData);
-        //getSupportFragmentManager().putFragment(outState, "listFragment", subredditListFragment);
     }
 }

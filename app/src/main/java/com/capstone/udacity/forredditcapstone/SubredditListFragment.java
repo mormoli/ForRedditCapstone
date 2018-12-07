@@ -81,7 +81,6 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
             userAccessToken = sharedPreferences.getString("accessToken", null);
             userRefreshToken = sharedPreferences.getString("refreshToken", null);
         }
-        //setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -98,11 +97,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
                 super.onAdClosed();
             }
         });
-        /*if(getArguments() != null){
-            Log.d(TAG, "onCreateView getting list!!!");
-            if(subListData == null) subListData = new ArrayList<>();
-            subListData = getArguments().getParcelableArrayList("listData");
-        }*/
+
         recyclerView = view.findViewById(R.id.subreddit_list_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         subListFragmentAdapter = new SubListFragmentAdapter(subListData);
@@ -166,29 +161,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if(savedInstanceState != null)
-            Log.d(TAG, "onActivityCreated list size: " + savedInstanceState.getParcelableArrayList("listData").size());
     }
-
-    /*@Override
-    public void onResume() {
-        super.onResume();
-        if(subListData.size() > 0) {
-            Log.d(TAG, "onResume restoring!!!");
-            subListFragmentAdapter = new SubListFragmentAdapter(subListData);
-            recyclerView.setAdapter(subListFragmentAdapter);
-            subListFragmentAdapter.notifyDataSetChanged();
-        } else {
-            Log.d(TAG, "onResume restoring with arguments!!!");
-            if(getArguments() != null) {
-                subListData = getArguments().getParcelableArrayList("listData");
-                Log.d(TAG, "onResume arguments size : " + getArguments().getParcelableArrayList("listData").size());
-            }
-            subListFragmentAdapter = new SubListFragmentAdapter(subListData);
-            recyclerView.setAdapter(subListFragmentAdapter);
-            subListFragmentAdapter.notifyDataSetChanged();
-        }
-    }*/
 
     @SuppressWarnings("ConstantConditions")
     @Override
@@ -232,7 +205,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
                 assert response.body() != null;
                 String json = response.body().string();
 
-                JSONObject data = null;
+                JSONObject data;
 
                 try {
                     data = new JSONObject(json);

@@ -11,7 +11,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.capstone.udacity.forredditcapstone.database.DataViewModel;
 import com.capstone.udacity.forredditcapstone.utils.Constants;
 
 /**
@@ -19,7 +18,6 @@ import com.capstone.udacity.forredditcapstone.utils.Constants;
  */
 public class RedditAppWidget extends AppWidgetProvider {
     private static final String TAG = RedditAppWidget.class.getSimpleName();
-    private DataViewModel mDataViewModel;
     //update happens on receive method no need to call this method.
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {

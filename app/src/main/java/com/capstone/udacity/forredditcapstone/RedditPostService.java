@@ -1,8 +1,6 @@
 package com.capstone.udacity.forredditcapstone;
 
 import android.app.IntentService;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
@@ -135,7 +133,7 @@ public class RedditPostService extends IntentService {
 
         TheRedditApi theRedditApi = retrofit.create(TheRedditApi.class);
         String authorization = "bearer " + userAccessToken;
-        Map<String, String> map = new HashMap<>();
+        //Map<String, String> map = new HashMap<>();
         Call<ResponseBody> responseBodyCall = theRedditApi.onConfirmClicked(authorization, action, skipDefaults, srName);
 
         responseBodyCall.enqueue(new Callback<ResponseBody>() {
