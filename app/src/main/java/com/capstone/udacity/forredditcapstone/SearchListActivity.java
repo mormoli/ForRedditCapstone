@@ -276,7 +276,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
                         //set to adapter for new search results and notify data set has changed.
                         searchFragmentAdapter.setSearchData(searchData);
                     } else{
-                        Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.search_keyword_text) + searchString + " " + getString(R.string.not_found_message), Toast.LENGTH_SHORT).show();
                     }
                 } else if(response.code() == 401){
                     //try to refresh token.
@@ -325,7 +325,7 @@ public class SearchListActivity extends AppCompatActivity implements ResponseRec
     @Override
     public void onResponseReceived(int resultCode, Bundle resultData) {
         if(resultCode == 200){
-            Toast.makeText(this, actionText + " successfully.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, actionText + " " + getString(R.string.action_text_success), Toast.LENGTH_SHORT).show();
             if(actionText.equals("Subscribed")) {
                 searchData.get(mPosition).setUserIsSubscriber(true);
                 //searchFragmentAdapter.notifyDataSetChanged();

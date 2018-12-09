@@ -17,6 +17,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     @BindView(R.id.main_activity_layout)
     CoordinatorLayout mCoordinatorLayout;
 
-    HomePageAdapter homePageAdapter;
+    private HomePageAdapter homePageAdapter;
     private List<PostData> childList;
     private List<SearchData> searchData;
     private List<Post> posts;
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     private Menu mOptionsMenu;
     private FirebaseAnalytics mFirebaseAnalytics;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
@@ -137,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                     //Log.d(TAG, "database empty first initialization.");
                 } else {
                     homePageAdapter.setPosts(posts);
+                    restoreLayoutManagerPosition();
                 }
             }
         });
@@ -158,6 +160,15 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         }
 
 
+    }
+    /*
+    * Method that restores scrolling state of recyclerview after adapter data populated.
+    * */
+    @SuppressWarnings("ConstantConditions")
+    private void restoreLayoutManagerPosition(){
+        if(recyclerView != null){
+            recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+        }
     }
     //@see 'https://stackoverflow.com/questions/48527171/detect-connectivity-change-in-android-7-and-above-when-app-is-killed-in-backgrou/48666854#48666854'
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -410,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                         //initSearchFragment();
                         openSearchListView();
                     } else{
-                        Toast.makeText(getApplicationContext(), " Search keyword: " + searchString + " not found!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), getString(R.string.search_keyword_text) + searchString + " "+ getString(R.string.not_found_message), Toast.LENGTH_SHORT).show();
                     }
                 } else if(response.code() == 401){
                     //try to refresh token.
@@ -571,6 +582,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(homePageAdapter);
+        ViewCompat.setNestedScrollingEnabled(recyclerView, false);
     }
     /*
     * Method that retrieves logged user info like username - id etc.
@@ -596,9 +608,6 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
                 //Log.d(TAG, " username: " + response.body().getUserName());
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putString("username", response.body().getUserName()).apply();
-                //Log.d(TAG, " id: " + response.body().getUserId());
-                //Log.d(TAG, " over18: " + response.body().isOver18());
-                //Log.d(TAG, " response string: " +response.body().toString());
             }
 
             @Override
@@ -669,7 +678,6 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
         if(savedInstanceState != null) {
             recyclerViewState = savedInstanceState.getParcelable("scroll_state");
         }
@@ -694,7 +702,7 @@ public class MainActivity extends AppCompatActivity implements ResponseReceiver.
         //Log.d(TAG, " resultCode: " + resultCode);
         //Log.d(TAG, " resultData: " + resultData.getString("data"));
         if(resultCode == 200){
-            Toast.makeText(this, "POST "+ action + " successfully.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.post_text)+ action + " " + getString(R.string.action_text_success), Toast.LENGTH_SHORT).show();
             if(action.equals("saved")){
                 //save action: save post to database
                 if(childList != null && childList.size() > 0){ //add data from network resource to data

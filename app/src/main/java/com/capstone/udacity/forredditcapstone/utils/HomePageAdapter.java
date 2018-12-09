@@ -60,10 +60,6 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
             //setIsRecyclable(false);
             ButterKnife.bind(this, view);
         }
-
-        /*public void insertPostsIntoDB(Post post){
-            RedditDatabase.getDatabase(itemView.getContext()).redditDAO().insert(post);
-        }*/
     }
     //@see 'https://stackoverflow.com/questions/13018550/time-since-ago-library-for-android-java'
     public static String getTimeAgo(long time){
@@ -194,8 +190,8 @@ public class HomePageAdapter extends RecyclerView.Adapter<HomePageAdapter.HomePa
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
-        notifyDataSetChanged();
-        //notifyItemRangeChanged(0, posts.size());
+        //notifyDataSetChanged();
+        notifyItemRangeChanged(0 , posts.size());
     }
 
     public String numberFormat(int number){

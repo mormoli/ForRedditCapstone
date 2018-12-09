@@ -53,11 +53,10 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     private SharedPreferences sharedPreferences;
     //@see 'https://developers.google.com/admob/android/interstitial'
     private InterstitialAd mInterstitialAd;
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
+    /* Default constructor will be added, as java documentetion states:
+     * If a class contains no constructor declarations, then a default constructor with
+     * no formal parameters and no throws clause is implicitly declared.
      */
-    public SubredditListFragment(){}
 
     public static SubredditListFragment newInstance(List<SubListData> subListData){
         SubredditListFragment subredditListFragment = new SubredditListFragment();
@@ -151,7 +150,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
                 if (mInterstitialAd.isLoaded()){
                     mInterstitialAd.show();
                 } else {
-                    Toast.makeText(getActivity(), "Admob is not ready", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getString(R.string.admob_not_ready_message), Toast.LENGTH_SHORT).show();
                 }
                 onLayoutCardSelected.OnCardItemSelected(position);
             }
@@ -234,7 +233,7 @@ public class SubredditListFragment extends Fragment implements ResponseReceiver.
     @Override
     public void onResponseReceived(int resultCode, Bundle resultData) {
         if(resultCode == 200){
-            Toast.makeText(getActivity(), mActionText + " successfully.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), mActionText + " " + getString(R.string.action_text_success), Toast.LENGTH_SHORT).show();
         }else if(resultCode == 401){
             //try to refresh token.
             Toast.makeText(getActivity(),getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();

@@ -20,12 +20,12 @@ public class ConnectivityReceiver extends BroadcastReceiver {
         mConnectivityReceiverListener.onNetworkConnectionChanged(isConnected(context));
 
     }
-
+    //isConnectedOrConnecting() method changed with isConnected() as suggested from documentation.
     public static boolean isConnected(Context context) {
         ConnectivityManager cm = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return activeNetwork != null && activeNetwork.isConnected();
     }
 
     public interface ConnectivityReceiverListener {

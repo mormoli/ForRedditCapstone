@@ -21,6 +21,16 @@
     <string name="save_button_description">Save</string>
     <string name="hide_button_name">hide</string>
     <string name="save_button_name">save</string>
+    <string name="save_button_message">Saved</string>
+    <string name="hide_button_message">Hided</string>
+    <string name="action_text_success">successfully.</string>
+    <string name="widget_first_message">Saved post data will show in here.</string>
+    <string name="admob_not_ready_message">Admob is not ready!</string>
+    <string name="comment_success_message">Comment saved successfully.</string>
+    <string name="details_post_action_messages">Please use home page to save/hide posts.</string>
+    <string name="search_keyword_text">Search keyword: </string>
+    <string name="not_found_message">not found!</string>
+    <string name="post_text">Post </string>
     <!-- settings menu -->
     <string name="settings_homepage">Homepage</string>
     <string name="settings_subreddits">Subreddit List</string>

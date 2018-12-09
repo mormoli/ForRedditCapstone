@@ -146,14 +146,14 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
             @Override
             public void onClick(View v) {
                 //hide button used
-                Toast.makeText(getApplicationContext(), "Please use home page to save/hide posts.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.details_post_action_messages), Toast.LENGTH_SHORT).show();
             }
         });
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //save button used
-                Toast.makeText(getApplicationContext(), "Please use home page to save/hide posts.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.details_post_action_messages), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -374,7 +374,7 @@ public class DetailsActivity extends AppCompatActivity implements ResponseReceiv
     public void onResponseReceived(int resultCode, Bundle resultData) {
         if(resultCode == 200){
             //save comment to database and show message to the user.
-            Toast.makeText(this, "Comment saved successfully.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.comment_success_message), Toast.LENGTH_SHORT).show();
         } else if(resultCode == 401){
             //try to refresh token.
             Toast.makeText(this,getString(R.string.unauthorized_access_error), Toast.LENGTH_SHORT).show();

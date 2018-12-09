@@ -42,6 +42,6 @@ public class NetworkSchedulerService extends JobService implements ConnectivityR
 
     @Override
     public void onNetworkConnectionChanged(boolean isConnected) {
-
+        //implemented in main activity directly.
     }
 }

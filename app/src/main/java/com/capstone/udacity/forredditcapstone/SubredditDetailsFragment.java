@@ -45,11 +45,10 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
     private SharedPreferences sharedPreferences;
     private int mPosition;
     private SubredditDetailsAdapter subredditDetailsAdapter;
-    /*
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
+    /* Default constructor will be added, as java documentetion states:
+     * If a class contains no constructor declarations, then a default constructor with
+     * no formal parameters and no throws clause is implicitly declared.
      */
-    public SubredditDetailsFragment(){}
 
     public static SubredditDetailsFragment newInstance(List<PostData> postData){
         SubredditDetailsFragment fragment = new SubredditDetailsFragment();
@@ -193,24 +192,19 @@ public class SubredditDetailsFragment extends Fragment implements ResponseReceiv
         outState.putParcelableArrayList("postData", (ArrayList<? extends Parcelable>) postData);
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        //if(postData != null) postData.clear();
-    }
 
     @Override
     public void onResponseReceived(int resultCode, Bundle resultData) {
         if(resultCode == 200){
-            Toast.makeText(getActivity(), mActionText + " successfully.", Toast.LENGTH_SHORT).show();
             if(mActionText.equals("saved")){
                 //save action: save post to database
-                Toast.makeText(getActivity(), "Saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.save_button_message), Toast.LENGTH_SHORT).show();
             } else {
                 //hide action: remove item and notify data changed.
                 postData.remove(mPosition);
                 subredditDetailsAdapter.notifyItemRemoved(mPosition);
                 subredditDetailsAdapter.notifyItemRangeChanged(mPosition, postData.size());
+                Toast.makeText(getActivity(), getString(R.string.hide_button_message), Toast.LENGTH_SHORT).show();
             }
         }else if(resultCode == 401){
             //try to refresh token.
